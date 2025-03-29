@@ -1,0 +1,11 @@
+developer_name,role,capacity,skill_sets,preferences
+Developer 1,Technical Lead,34,Microservices;Prometheus;Terraform;Angular;MongoDB,UI/UX Design
+Developer 2,QA Engineer,20,Project Management;MongoDB;REST APIs;GraphQL;Agile;UI/UX Design,Backend Development;UI/UX Design;Testing
+Developer 3,Scrum Master,21,Microservices;Docker;Node.js,Testing;Documentation
+Developer 4,Security Engineer,16,Prometheus;MongoDB;Docker;Java;Redis;System Architecture,Architecture;Machine Learning
+Developer 5,ML Engineer,25,REST APIs;CI/CD;Git,UI/UX Design;Documentation;Data Engineering
+Developer 6,Architect,30,Azure;GraphQL;Terraform;Python,Backend Development;Frontend Development;Architecture
+Developer 7,Technical Lead,35,Project Management;JavaScript;Java;Data Analysis;MongoDB;Kubernetes;Prometheus;Angular,DevOps;Documentation;Frontend Development
+Developer 8,Software Engineer,18,Git;GCP;DevOps;AWS;GraphQL;Prometheus;Agile,Architecture;Documentation
+Developer 9,Product Manager,23,Azure;Data Analysis;UI/UX Design,Documentation;Backend Development
+Developer 10,QA Engineer,18,CI/CD;Terraform;Jenkins;Docker,DevOps;Data Engineering
