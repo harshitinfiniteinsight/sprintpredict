@@ -1,0 +1,201 @@
+issue_key,summary,description,priority,story_points,dependencies,pre_mapped_skills
+TSK-001,Task 1: Enhancement,Detailed description for task 1. This is a technical task.,Medium,8,"TSK-100,TSK-080","REST APIs,PostgreSQL,Docker"
+TSK-002,Task 2: Documentation,Detailed description for task 2. This is a bug fix.,High,3,TSK-077,"GCP,Terraform,CI/CD"
+TSK-003,Task 3: Feature,Detailed description for task 3. This is a documentation update.,Medium,13,"TSK-099,TSK-100,TSK-089",Docker
+TSK-004,Task 4: Enhancement,Detailed description for task 4. This is a bug fix.,Low,8,TSK-190,"System Architecture,Agile"
+TSK-005,Task 5: Enhancement,Detailed description for task 5. This is a documentation update.,High,8,"TSK-174,TSK-092","Python,AWS"
+TSK-006,Task 6: Documentation,Detailed description for task 6. This is a user story.,Medium,2,"TSK-196,TSK-029,TSK-122",DevOps
+TSK-007,Task 7: Documentation,Detailed description for task 7. This is a technical task.,Low,5,TSK-044,"Git,MongoDB"
+TSK-008,Task 8: Bug,Detailed description for task 8. This is a user story.,Low,3,,UI/UX Design
+TSK-009,Task 9: Feature,Detailed description for task 9. This is a user story.,High,5,,"Agile,Data Analysis,JavaScript,PostgreSQL"
+TSK-010,Task 10: Feature,Detailed description for task 10. This is a user story.,Low,2,"TSK-137,TSK-155,TSK-142",AWS
+TSK-011,Task 11: Documentation,Detailed description for task 11. This is a user story.,Low,1,"TSK-169,TSK-138,TSK-166","Jenkins,PostgreSQL"
+TSK-012,Task 12: Feature,Detailed description for task 12. This is a technical task.,Medium,2,"TSK-011,TSK-073","Angular,Node.js,REST APIs,Azure"
+TSK-013,Task 13: Documentation,Detailed description for task 13. This is a user story.,Medium,5,"TSK-115,TSK-103,TSK-100","REST APIs,System Architecture"
+TSK-014,Task 14: Feature,Detailed description for task 14. This is a documentation update.,Medium,1,"TSK-103,TSK-142","GCP,AWS"
+TSK-015,Task 15: Enhancement,Detailed description for task 15. This is a user story.,High,8,"TSK-180,TSK-145","AWS,Ansible,DevOps,System Architecture"
+TSK-016,Task 16: Bug,Detailed description for task 16. This is a technical task.,Medium,2,,Kubernetes
+TSK-017,Task 17: Feature,Detailed description for task 17. This is a bug fix.,Low,5,"TSK-068,TSK-021","Terraform,Azure,Kubernetes"
+TSK-018,Task 18: Documentation,Detailed description for task 18. This is a user story.,Medium,13,TSK-185,Grafana
+TSK-019,Task 19: Bug,Detailed description for task 19. This is a documentation update.,Low,8,"TSK-164,TSK-173","Angular,React,SQL"
+TSK-020,Task 20: Bug,Detailed description for task 20. This is a technical task.,Medium,1,TSK-097,"Git,React,Kafka"
+TSK-021,Task 21: Bug,Detailed description for task 21. This is a technical task.,Medium,5,TSK-191,"Kubernetes,Project Management"
+TSK-022,Task 22: Bug,Detailed description for task 22. This is a bug fix.,Low,2,"TSK-112,TSK-132,TSK-124",Kafka
+TSK-023,Task 23: Documentation,Detailed description for task 23. This is a technical task.,Medium,5,"TSK-198,TSK-034","CI/CD,SQL"
+TSK-024,Task 24: Bug,Detailed description for task 24. This is a user story.,Medium,2,,"Data Analysis,JavaScript,REST APIs,System Architecture"
+TSK-025,Task 25: Feature,Detailed description for task 25. This is a technical task.,Low,3,"TSK-064,TSK-153",Project Management
+TSK-026,Task 26: Bug,Detailed description for task 26. This is a user story.,Low,5,"TSK-154,TSK-039","Agile,MongoDB,SQL"
+TSK-027,Task 27: Enhancement,Detailed description for task 27. This is a user story.,High,8,TSK-172,"Azure,System Architecture,AWS,Node.js"
+TSK-028,Task 28: Documentation,Detailed description for task 28. This is a technical task.,High,3,"TSK-167,TSK-148","UI/UX Design,Elasticsearch,Node.js,JavaScript"
+TSK-029,Task 29: Enhancement,Detailed description for task 29. This is a documentation update.,Medium,3,TSK-162,"Azure,Python"
+TSK-030,Task 30: Documentation,Detailed description for task 30. This is a bug fix.,Low,3,"TSK-099,TSK-171,TSK-037",REST APIs
+TSK-031,Task 31: Enhancement,Detailed description for task 31. This is a bug fix.,Low,5,"TSK-155,TSK-081,TSK-113",JavaScript
+TSK-032,Task 32: Feature,Detailed description for task 32. This is a technical task.,High,1,"TSK-063,TSK-133","Node.js,CI/CD"
+TSK-033,Task 33: Enhancement,Detailed description for task 33. This is a user story.,High,5,TSK-193,Kafka
+TSK-034,Task 34: Feature,Detailed description for task 34. This is a user story.,Low,13,"TSK-036,TSK-015","Azure,Machine Learning,Ansible"
+TSK-035,Task 35: Bug,Detailed description for task 35. This is a technical task.,High,2,TSK-191,Prometheus
+TSK-036,Task 36: Bug,Detailed description for task 36. This is a user story.,Low,3,"TSK-184,TSK-192","Jenkins,MongoDB"
+TSK-037,Task 37: Documentation,Detailed description for task 37. This is a documentation update.,Low,3,"TSK-138,TSK-006","SQL,GCP,Azure"
+TSK-038,Task 38: Bug,Detailed description for task 38. This is a documentation update.,Low,2,"TSK-105,TSK-166,TSK-197","System Architecture,Terraform,AWS,Azure"
+TSK-039,Task 39: Bug,Detailed description for task 39. This is a bug fix.,Medium,1,TSK-045,Kafka
+TSK-040,Task 40: Documentation,Detailed description for task 40. This is a documentation update.,Medium,8,TSK-126,"System Architecture,AWS,Elasticsearch"
+TSK-041,Task 41: Documentation,Detailed description for task 41. This is a documentation update.,High,5,"TSK-096,TSK-088","Python,Prometheus,Kubernetes"
+TSK-042,Task 42: Enhancement,Detailed description for task 42. This is a user story.,Low,2,"TSK-142,TSK-074,TSK-099","Data Analysis,REST APIs,Azure"
+TSK-043,Task 43: Bug,Detailed description for task 43. This is a bug fix.,Medium,5,TSK-068,"Python,Grafana,GraphQL"
+TSK-044,Task 44: Bug,Detailed description for task 44. This is a user story.,Medium,3,"TSK-031,TSK-098","Git,Ansible,Angular,Azure"
+TSK-045,Task 45: Bug,Detailed description for task 45. This is a user story.,Medium,13,"TSK-119,TSK-108",JavaScript
+TSK-046,Task 46: Bug,Detailed description for task 46. This is a documentation update.,High,5,"TSK-076,TSK-031",Kubernetes
+TSK-047,Task 47: Documentation,Detailed description for task 47. This is a bug fix.,Low,1,TSK-076,"Git,GCP,Machine Learning"
+TSK-048,Task 48: Feature,Detailed description for task 48. This is a bug fix.,High,13,,"MongoDB,Docker,Project Management"
+TSK-049,Task 49: Bug,Detailed description for task 49. This is a bug fix.,High,5,"TSK-186,TSK-012","Jenkins,Data Analysis"
+TSK-050,Task 50: Bug,Detailed description for task 50. This is a user story.,Low,13,"TSK-200,TSK-080","PostgreSQL,Grafana,CI/CD"
+TSK-051,Task 51: Feature,Detailed description for task 51. This is a technical task.,High,1,,"GCP,Data Analysis,Prometheus,Docker"
+TSK-052,Task 52: Bug,Detailed description for task 52. This is a bug fix.,High,2,"TSK-041,TSK-191",Docker
+TSK-053,Task 53: Bug,Detailed description for task 53. This is a documentation update.,Medium,5,,"Kubernetes,Redis"
+TSK-054,Task 54: Enhancement,Detailed description for task 54. This is a documentation update.,Medium,2,TSK-004,"JavaScript,Redis"
+TSK-055,Task 55: Bug,Detailed description for task 55. This is a documentation update.,High,3,,AWS
+TSK-056,Task 56: Enhancement,Detailed description for task 56. This is a documentation update.,Low,2,TSK-109,"Kafka,Node.js,GraphQL,Angular"
+TSK-057,Task 57: Feature,Detailed description for task 57. This is a user story.,High,8,"TSK-192,TSK-179","React,Data Analysis,Agile"
+TSK-058,Task 58: Enhancement,Detailed description for task 58. This is a user story.,High,13,,"React,Java"
+TSK-059,Task 59: Bug,Detailed description for task 59. This is a technical task.,Low,2,"TSK-045,TSK-121,TSK-024",UI/UX Design
+TSK-060,Task 60: Feature,Detailed description for task 60. This is a bug fix.,Medium,5,"TSK-133,TSK-123,TSK-108","Java,Python,Prometheus,Git"
+TSK-061,Task 61: Documentation,Detailed description for task 61. This is a bug fix.,Low,8,"TSK-171,TSK-073,TSK-162","PostgreSQL,Prometheus"
+TSK-062,Task 62: Bug,Detailed description for task 62. This is a user story.,Medium,5,"TSK-160,TSK-141","Project Management,UI/UX Design"
+TSK-063,Task 63: Bug,Detailed description for task 63. This is a user story.,High,13,,"Kafka,Java"
+TSK-064,Task 64: Feature,Detailed description for task 64. This is a technical task.,High,13,"TSK-031,TSK-189","Ansible,Redis"
+TSK-065,Task 65: Enhancement,Detailed description for task 65. This is a bug fix.,Low,13,TSK-131,"Java,REST APIs"
+TSK-066,Task 66: Feature,Detailed description for task 66. This is a bug fix.,High,2,TSK-119,"Agile,Jenkins,Python,REST APIs"
+TSK-067,Task 67: Documentation,Detailed description for task 67. This is a technical task.,High,5,"TSK-072,TSK-140,TSK-034","Data Analysis,Agile,Java"
+TSK-068,Task 68: Bug,Detailed description for task 68. This is a technical task.,Low,1,"TSK-063,TSK-107,TSK-102","Elasticsearch,RabbitMQ"
+TSK-069,Task 69: Feature,Detailed description for task 69. This is a documentation update.,Medium,8,TSK-068,"GraphQL,AWS"
+TSK-070,Task 70: Feature,Detailed description for task 70. This is a user story.,High,5,,"Git,MongoDB,Redis,Angular"
+TSK-071,Task 71: Documentation,Detailed description for task 71. This is a user story.,Low,13,,"Grafana,System Architecture"
+TSK-072,Task 72: Enhancement,Detailed description for task 72. This is a documentation update.,Low,13,TSK-059,Machine Learning
+TSK-073,Task 73: Feature,Detailed description for task 73. This is a documentation update.,High,13,"TSK-054,TSK-052","Agile,Python,Machine Learning"
+TSK-074,Task 74: Enhancement,Detailed description for task 74. This is a technical task.,High,2,"TSK-118,TSK-119,TSK-056","GCP,System Architecture,CI/CD,GraphQL"
+TSK-075,Task 75: Feature,Detailed description for task 75. This is a bug fix.,Low,13,"TSK-071,TSK-136,TSK-191",Redis
+TSK-076,Task 76: Feature,Detailed description for task 76. This is a bug fix.,Low,3,"TSK-139,TSK-117,TSK-043","Machine Learning,Prometheus,DevOps"
+TSK-077,Task 77: Enhancement,Detailed description for task 77. This is a technical task.,Low,1,"TSK-065,TSK-076,TSK-008","Grafana,MongoDB"
+TSK-078,Task 78: Documentation,Detailed description for task 78. This is a technical task.,High,2,"TSK-148,TSK-169","REST APIs,Data Analysis"
+TSK-079,Task 79: Bug,Detailed description for task 79. This is a bug fix.,Low,1,TSK-021,"Prometheus,MongoDB,Microservices"
+TSK-080,Task 80: Feature,Detailed description for task 80. This is a bug fix.,Medium,5,TSK-101,"Azure,System Architecture"
+TSK-081,Task 81: Feature,Detailed description for task 81. This is a user story.,Low,13,TSK-139,JavaScript
+TSK-082,Task 82: Feature,Detailed description for task 82. This is a technical task.,Low,1,"TSK-081,TSK-128,TSK-006","UI/UX Design,Docker,Git"
+TSK-083,Task 83: Enhancement,Detailed description for task 83. This is a documentation update.,High,1,"TSK-197,TSK-040,TSK-015","RabbitMQ,Ansible,MongoDB"
+TSK-084,Task 84: Documentation,Detailed description for task 84. This is a user story.,High,3,,"Data Analysis,Docker,Machine Learning,UI/UX Design"
+TSK-085,Task 85: Documentation,Detailed description for task 85. This is a documentation update.,Medium,3,TSK-200,Kubernetes
+TSK-086,Task 86: Enhancement,Detailed description for task 86. This is a bug fix.,Medium,13,,"JavaScript,UI/UX Design"
+TSK-087,Task 87: Enhancement,Detailed description for task 87. This is a technical task.,Medium,2,,"JavaScript,Azure,UI/UX Design"
+TSK-088,Task 88: Feature,Detailed description for task 88. This is a technical task.,Medium,13,"TSK-119,TSK-023",Terraform
+TSK-089,Task 89: Bug,Detailed description for task 89. This is a bug fix.,Medium,8,"TSK-150,TSK-107,TSK-009","GraphQL,MongoDB"
+TSK-090,Task 90: Documentation,Detailed description for task 90. This is a bug fix.,High,8,,"Machine Learning,MongoDB,DevOps,Kafka"
+TSK-091,Task 91: Feature,Detailed description for task 91. This is a bug fix.,Low,2,"TSK-061,TSK-065,TSK-067","Jenkins,Grafana,UI/UX Design,Kubernetes"
+TSK-092,Task 92: Bug,Detailed description for task 92. This is a documentation update.,Medium,2,"TSK-083,TSK-067","Azure,Git,AWS"
+TSK-093,Task 93: Bug,Detailed description for task 93. This is a bug fix.,High,2,,Git
+TSK-094,Task 94: Documentation,Detailed description for task 94. This is a bug fix.,High,5,"TSK-036,TSK-176,TSK-183","Java,Azure,Elasticsearch"
+TSK-095,Task 95: Feature,Detailed description for task 95. This is a technical task.,Low,2,TSK-056,"DevOps,REST APIs"
+TSK-096,Task 96: Feature,Detailed description for task 96. This is a user story.,Low,5,"TSK-101,TSK-134,TSK-012",Machine Learning
+TSK-097,Task 97: Enhancement,Detailed description for task 97. This is a technical task.,Low,2,"TSK-174,TSK-141","CI/CD,PostgreSQL,Project Management"
+TSK-098,Task 98: Enhancement,Detailed description for task 98. This is a technical task.,High,2,,React
+TSK-099,Task 99: Enhancement,Detailed description for task 99. This is a documentation update.,High,8,,"Microservices,React,Grafana,GraphQL"
+TSK-100,Task 100: Feature,Detailed description for task 100. This is a user story.,Medium,5,"TSK-191,TSK-050,TSK-117",Redis
+TSK-101,Task 101: Bug,Detailed description for task 101. This is a user story.,Low,3,,Terraform
+TSK-102,Task 102: Bug,Detailed description for task 102. This is a user story.,High,5,"TSK-183,TSK-035","Angular,Microservices,AWS"
+TSK-103,Task 103: Feature,Detailed description for task 103. This is a user story.,Medium,8,"TSK-144,TSK-127,TSK-129","AWS,Kubernetes,Elasticsearch,Project Management"
+TSK-104,Task 104: Documentation,Detailed description for task 104. This is a user story.,Low,3,"TSK-129,TSK-186","Terraform,Machine Learning,System Architecture,UI/UX Design"
+TSK-105,Task 105: Enhancement,Detailed description for task 105. This is a technical task.,Low,8,"TSK-137,TSK-045","RabbitMQ,Azure,Grafana,REST APIs"
+TSK-106,Task 106: Enhancement,Detailed description for task 106. This is a user story.,High,5,TSK-086,GraphQL
+TSK-107,Task 107: Feature,Detailed description for task 107. This is a user story.,Low,2,TSK-078,"RabbitMQ,GraphQL,Project Management,Elasticsearch"
+TSK-108,Task 108: Documentation,Detailed description for task 108. This is a user story.,Low,3,,"MongoDB,UI/UX Design,Redis,System Architecture"
+TSK-109,Task 109: Bug,Detailed description for task 109. This is a bug fix.,Medium,1,TSK-062,GraphQL
+TSK-110,Task 110: Bug,Detailed description for task 110. This is a documentation update.,High,2,"TSK-034,TSK-168,TSK-033","System Architecture,AWS,Terraform,MongoDB"
+TSK-111,Task 111: Bug,Detailed description for task 111. This is a technical task.,Medium,3,,"Machine Learning,Kubernetes,Angular"
+TSK-112,Task 112: Bug,Detailed description for task 112. This is a documentation update.,Medium,3,,RabbitMQ
+TSK-113,Task 113: Bug,Detailed description for task 113. This is a user story.,Medium,5,"TSK-078,TSK-012",GCP
+TSK-114,Task 114: Feature,Detailed description for task 114. This is a documentation update.,Low,3,TSK-094,"Prometheus,Node.js,GCP"
+TSK-115,Task 115: Documentation,Detailed description for task 115. This is a documentation update.,Medium,3,,"Docker,GraphQL,MongoDB,Microservices"
+TSK-116,Task 116: Feature,Detailed description for task 116. This is a bug fix.,Medium,8,"TSK-188,TSK-029",DevOps
+TSK-117,Task 117: Bug,Detailed description for task 117. This is a bug fix.,Medium,2,TSK-005,Grafana
+TSK-118,Task 118: Documentation,Detailed description for task 118. This is a technical task.,Low,2,TSK-005,"Data Analysis,Machine Learning,Kubernetes,REST APIs"
+TSK-119,Task 119: Documentation,Detailed description for task 119. This is a documentation update.,Low,2,TSK-043,"Microservices,JavaScript"
+TSK-120,Task 120: Bug,Detailed description for task 120. This is a user story.,Medium,8,"TSK-071,TSK-055,TSK-130",System Architecture
+TSK-121,Task 121: Feature,Detailed description for task 121. This is a user story.,Medium,8,"TSK-100,TSK-154,TSK-010","Python,Jenkins,MongoDB"
+TSK-122,Task 122: Bug,Detailed description for task 122. This is a bug fix.,Medium,3,,CI/CD
+TSK-123,Task 123: Enhancement,Detailed description for task 123. This is a documentation update.,Medium,13,,Git
+TSK-124,Task 124: Feature,Detailed description for task 124. This is a documentation update.,Low,2,,"PostgreSQL,Angular,Azure"
+TSK-125,Task 125: Bug,Detailed description for task 125. This is a user story.,Medium,2,"TSK-117,TSK-009,TSK-003","Agile,Ansible"
+TSK-126,Task 126: Documentation,Detailed description for task 126. This is a documentation update.,High,5,TSK-036,"Elasticsearch,Ansible,Java,Terraform"
+TSK-127,Task 127: Documentation,Detailed description for task 127. This is a user story.,Low,3,TSK-006,"Docker,Prometheus,Ansible"
+TSK-128,Task 128: Bug,Detailed description for task 128. This is a user story.,High,3,,Kubernetes
+TSK-129,Task 129: Bug,Detailed description for task 129. This is a technical task.,High,3,,Docker
+TSK-130,Task 130: Bug,Detailed description for task 130. This is a bug fix.,Medium,13,"TSK-043,TSK-070,TSK-127","Python,Agile"
+TSK-131,Task 131: Documentation,Detailed description for task 131. This is a documentation update.,Medium,2,TSK-188,"Python,MongoDB,Machine Learning,Grafana"
+TSK-132,Task 132: Documentation,Detailed description for task 132. This is a technical task.,High,3,,"Redis,GraphQL,Kafka"
+TSK-133,Task 133: Enhancement,Detailed description for task 133. This is a technical task.,Low,13,"TSK-041,TSK-099","Ansible,Machine Learning,DevOps,Azure"
+TSK-134,Task 134: Feature,Detailed description for task 134. This is a technical task.,Low,13,,"Kafka,Java,Ansible"
+TSK-135,Task 135: Bug,Detailed description for task 135. This is a documentation update.,Medium,5,"TSK-030,TSK-080","RabbitMQ,JavaScript,System Architecture"
+TSK-136,Task 136: Bug,Detailed description for task 136. This is a technical task.,High,1,"TSK-157,TSK-032","MongoDB,Docker"
+TSK-137,Task 137: Feature,Detailed description for task 137. This is a documentation update.,Low,5,"TSK-069,TSK-112,TSK-054","UI/UX Design,Git,PostgreSQL"
+TSK-138,Task 138: Enhancement,Detailed description for task 138. This is a bug fix.,Medium,3,,"Java,UI/UX Design,SQL"
+TSK-139,Task 139: Bug,Detailed description for task 139. This is a documentation update.,Low,1,"TSK-184,TSK-121",Prometheus
+TSK-140,Task 140: Feature,Detailed description for task 140. This is a user story.,Medium,1,"TSK-033,TSK-015,TSK-062",REST APIs
+TSK-141,Task 141: Enhancement,Detailed description for task 141. This is a documentation update.,Medium,13,"TSK-076,TSK-169,TSK-051",Node.js
+TSK-142,Task 142: Documentation,Detailed description for task 142. This is a technical task.,Medium,8,"TSK-111,TSK-146,TSK-175","Terraform,Node.js,GCP"
+TSK-143,Task 143: Feature,Detailed description for task 143. This is a documentation update.,Low,13,"TSK-071,TSK-010,TSK-180","REST APIs,System Architecture,SQL"
+TSK-144,Task 144: Documentation,Detailed description for task 144. This is a bug fix.,Medium,2,"TSK-031,TSK-079","CI/CD,React,Java,Docker"
+TSK-145,Task 145: Feature,Detailed description for task 145. This is a user story.,Low,5,,AWS
+TSK-146,Task 146: Feature,Detailed description for task 146. This is a technical task.,High,1,TSK-153,"Elasticsearch,Jenkins,Grafana,Terraform"
+TSK-147,Task 147: Enhancement,Detailed description for task 147. This is a bug fix.,Low,2,"TSK-090,TSK-159,TSK-100","Elasticsearch,Data Analysis,Grafana,Microservices"
+TSK-148,Task 148: Enhancement,Detailed description for task 148. This is a technical task.,Medium,2,"TSK-060,TSK-092",System Architecture
+TSK-149,Task 149: Feature,Detailed description for task 149. This is a bug fix.,Low,2,"TSK-181,TSK-182,TSK-109",Prometheus
+TSK-150,Task 150: Enhancement,Detailed description for task 150. This is a technical task.,Medium,1,,"Angular,Docker,Node.js,Project Management"
+TSK-151,Task 151: Bug,Detailed description for task 151. This is a technical task.,Medium,1,"TSK-072,TSK-037","Prometheus,React,PostgreSQL"
+TSK-152,Task 152: Enhancement,Detailed description for task 152. This is a bug fix.,High,8,TSK-074,"Azure,Jenkins,Ansible,Java"
+TSK-153,Task 153: Documentation,Detailed description for task 153. This is a documentation update.,Low,3,"TSK-193,TSK-009",Agile
+TSK-154,Task 154: Feature,Detailed description for task 154. This is a documentation update.,Medium,13,"TSK-107,TSK-155,TSK-186",Prometheus
+TSK-155,Task 155: Documentation,Detailed description for task 155. This is a technical task.,High,1,"TSK-147,TSK-006","Project Management,CI/CD,Node.js"
+TSK-156,Task 156: Feature,Detailed description for task 156. This is a user story.,Medium,1,"TSK-166,TSK-001","Angular,Ansible,Jenkins,DevOps"
+TSK-157,Task 157: Feature,Detailed description for task 157. This is a technical task.,High,1,"TSK-075,TSK-028,TSK-187","Git,Docker"
+TSK-158,Task 158: Feature,Detailed description for task 158. This is a documentation update.,High,8,TSK-130,"Node.js,JavaScript,Machine Learning,REST APIs"
+TSK-159,Task 159: Feature,Detailed description for task 159. This is a technical task.,Medium,2,,"GCP,Jenkins,Python"
+TSK-160,Task 160: Feature,Detailed description for task 160. This is a documentation update.,Medium,2,"TSK-135,TSK-017,TSK-032","Kafka,MongoDB"
+TSK-161,Task 161: Enhancement,Detailed description for task 161. This is a technical task.,Low,8,"TSK-105,TSK-063",CI/CD
+TSK-162,Task 162: Bug,Detailed description for task 162. This is a bug fix.,Medium,1,TSK-084,Project Management
+TSK-163,Task 163: Feature,Detailed description for task 163. This is a documentation update.,Low,8,"TSK-105,TSK-053,TSK-089","Java,Machine Learning,Angular,AWS"
+TSK-164,Task 164: Bug,Detailed description for task 164. This is a technical task.,Low,8,TSK-034,"Redis,Jenkins"
+TSK-165,Task 165: Enhancement,Detailed description for task 165. This is a technical task.,Low,2,"TSK-199,TSK-098","Docker,CI/CD,GCP"
+TSK-166,Task 166: Documentation,Detailed description for task 166. This is a documentation update.,Medium,8,,Git
+TSK-167,Task 167: Enhancement,Detailed description for task 167. This is a bug fix.,High,5,"TSK-108,TSK-001,TSK-136","GCP,RabbitMQ"
+TSK-168,Task 168: Documentation,Detailed description for task 168. This is a user story.,Low,5,"TSK-060,TSK-043","Ansible,Grafana,Data Analysis,Angular"
+TSK-169,Task 169: Documentation,Detailed description for task 169. This is a bug fix.,Medium,13,"TSK-195,TSK-027","GCP,Microservices,Python"
+TSK-170,Task 170: Documentation,Detailed description for task 170. This is a technical task.,High,8,"TSK-132,TSK-071","Data Analysis,Java,SQL"
+TSK-171,Task 171: Bug,Detailed description for task 171. This is a documentation update.,Low,5,,"GCP,React,Machine Learning,JavaScript"
+TSK-172,Task 172: Bug,Detailed description for task 172. This is a user story.,Medium,3,,"Docker,Terraform,Redis,Data Analysis"
+TSK-173,Task 173: Feature,Detailed description for task 173. This is a user story.,Low,5,TSK-169,"Python,Data Analysis"
+TSK-174,Task 174: Feature,Detailed description for task 174. This is a technical task.,Low,1,,"Agile,Python,RabbitMQ,JavaScript"
+TSK-175,Task 175: Enhancement,Detailed description for task 175. This is a technical task.,Medium,2,,"Agile,System Architecture,JavaScript"
+TSK-176,Task 176: Feature,Detailed description for task 176. This is a documentation update.,Low,8,TSK-074,"SQL,Jenkins,PostgreSQL,DevOps"
+TSK-177,Task 177: Documentation,Detailed description for task 177. This is a user story.,High,3,,Elasticsearch
+TSK-178,Task 178: Enhancement,Detailed description for task 178. This is a bug fix.,High,2,TSK-109,"React,DevOps,Terraform,Microservices"
+TSK-179,Task 179: Documentation,Detailed description for task 179. This is a documentation update.,Medium,2,TSK-149,"Grafana,SQL,Angular,Docker"
+TSK-180,Task 180: Feature,Detailed description for task 180. This is a technical task.,Medium,2,"TSK-100,TSK-017,TSK-144",Grafana
+TSK-181,Task 181: Documentation,Detailed description for task 181. This is a documentation update.,High,5,,"Terraform,Grafana,CI/CD"
+TSK-182,Task 182: Bug,Detailed description for task 182. This is a documentation update.,High,5,,"UI/UX Design,Microservices,Azure,Terraform"
+TSK-183,Task 183: Documentation,Detailed description for task 183. This is a documentation update.,Medium,3,"TSK-167,TSK-001","DevOps,JavaScript,RabbitMQ,React"
+TSK-184,Task 184: Feature,Detailed description for task 184. This is a technical task.,Medium,5,TSK-002,"AWS,System Architecture,CI/CD"
+TSK-185,Task 185: Bug,Detailed description for task 185. This is a user story.,Medium,1,,Ansible
+TSK-186,Task 186: Documentation,Detailed description for task 186. This is a technical task.,Low,13,"TSK-178,TSK-140","System Architecture,Kubernetes,REST APIs"
+TSK-187,Task 187: Bug,Detailed description for task 187. This is a documentation update.,Medium,8,"TSK-134,TSK-016,TSK-175",Angular
+TSK-188,Task 188: Feature,Detailed description for task 188. This is a documentation update.,High,2,"TSK-124,TSK-095,TSK-198",Git
+TSK-189,Task 189: Documentation,Detailed description for task 189. This is a bug fix.,High,1,TSK-092,"RabbitMQ,Agile"
+TSK-190,Task 190: Bug,Detailed description for task 190. This is a documentation update.,Low,2,"TSK-051,TSK-167",Jenkins
+TSK-191,Task 191: Bug,Detailed description for task 191. This is a user story.,Medium,13,TSK-174,"System Architecture,Jenkins,Kafka"
+TSK-192,Task 192: Feature,Detailed description for task 192. This is a user story.,High,5,TSK-130,PostgreSQL
+TSK-193,Task 193: Documentation,Detailed description for task 193. This is a technical task.,Medium,1,,"Agile,Project Management,RabbitMQ,PostgreSQL"
+TSK-194,Task 194: Feature,Detailed description for task 194. This is a user story.,High,2,"TSK-148,TSK-178,TSK-096","PostgreSQL,Java"
+TSK-195,Task 195: Enhancement,Detailed description for task 195. This is a bug fix.,Low,2,TSK-189,"GCP,Azure,Node.js"
+TSK-196,Task 196: Bug,Detailed description for task 196. This is a bug fix.,Medium,8,"TSK-146,TSK-163",Data Analysis
+TSK-197,Task 197: Documentation,Detailed description for task 197. This is a documentation update.,High,5,TSK-055,"PostgreSQL,Kubernetes"
+TSK-198,Task 198: Enhancement,Detailed description for task 198. This is a user story.,High,3,"TSK-031,TSK-104,TSK-179","Python,React,Kafka"
+TSK-199,Task 199: Bug,Detailed description for task 199. This is a technical task.,Low,2,,"GraphQL,React,Kafka,GCP"
+TSK-200,Task 200: Feature,Detailed description for task 200. This is a documentation update.,Medium,2,,"Data Analysis,REST APIs,PostgreSQL,Kubernetes"
