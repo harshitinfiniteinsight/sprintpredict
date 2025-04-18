@@ -305,4 +305,4 @@ class SprintVisualizer:
             title="Skill Matching Heatmap",
             color_continuous_scale="RdYlGn"
         )
-        st.plotly_chart(fig) 
+        st.plotly_chart(fig)

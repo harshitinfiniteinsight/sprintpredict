@@ -65,6 +65,7 @@ class SprintOptimizer:
             for dep in task_dependencies[t]:
                 if dep in tasks:  # Only consider dependencies that are in the task list
                     self.problem += self.task_vars[t] <= self.task_vars[dep]
+        # Updated to ensure dependencies are handled as lists
         
         # 4. Skill matching constraints (optional)
         for t in tasks:
@@ -130,4 +131,4 @@ class SprintOptimizer:
             'total_tasks_selected': sum(1 for selected in task_selection.values() if selected),
             'total_story_points': total_points,
             'developer_utilization': developer_utilization
-        } 
+        }
