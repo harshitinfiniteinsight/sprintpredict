@@ -1,6 +1,7 @@
 from pulp import *
 from typing import Dict, List, Tuple
 import numpy as np
+from datetime import datetime, timedelta
 
 class SprintOptimizer:
     def __init__(self):
@@ -20,6 +21,10 @@ class SprintOptimizer:
         developer_skills: Dict[str, List[str]]
     ) -> None:
         """Create the MILP optimization model for sprint planning."""
+        print("create_optimization_model called with tasks:", tasks)
+        
+        
+
         # Create the optimization problem
         self.problem = LpProblem("SprintPlanning", LpMaximize)
         
@@ -105,29 +110,110 @@ class SprintOptimizer:
         developer_capacity: Dict[str, float]
     ) -> Dict:
         """Generate a summary of the optimization results."""
-        # Calculate total story points selected
-        total_points = sum(
-            task_points[t]
-            for t, selected in task_selection.items()
-            if selected
-        )
-        
-        # Calculate developer utilization
-        developer_utilization = {}
-        for dev in developer_capacity:
-            assigned_points = sum(
+        try:
+            # Debugging logs to inspect inputs
+            #print("Debugging get_optimization_summary inputs:")
+            #print("task_selection:", task_selection)
+            #print("task_assignments:", task_assignments)
+            #print("task_points:", task_points)
+            #print("developer_capacity:", developer_capacity)
+
+            # Calculate total story points selected
+            total_points = sum(
                 task_points[t]
-                for (t, d), assigned in task_assignments.items()
-                if d == dev and assigned
+                for t, selected in task_selection.items()
+                if selected
             )
-            developer_utilization[dev] = {
-                'assigned_points': assigned_points,
-                'capacity': developer_capacity[dev],
-                'utilization_rate': assigned_points / developer_capacity[dev]
+
+            task_dates = assign_task_dates(task_assignments, task_points, developer_capacity, "2025-04-05", "2025-04-18")
+
+            # Calculate developer utilization
+            developer_utilization = {}
+            developer_tasks = {dev: [] for dev in developer_capacity}  # Initialize task lists for each developer
+
+            for dev in developer_capacity:
+                assigned_points = sum(
+                    task_points[t]
+                    for (t, d), assigned in task_assignments.items()
+                    if d == dev and assigned
+                )
+
+                # Collect tasks assigned to the developer
+                developer_tasks[dev] = [
+                    t for (t, d), assigned in task_assignments.items()
+                    if d == dev and assigned
+                ]
+
+                developer_utilization[dev] = {
+                    'assigned_points': assigned_points,
+                    'capacity': developer_capacity[dev],
+                    'utilization_rate': assigned_points / developer_capacity[dev],
+                    'tasks': developer_tasks[dev]  # Add the list of tasks
+                }
+
+            # Add developer schedules to developer_utilization
+            for dev in developer_utilization:
+                developer_utilization[dev]['schedule'] = task_dates.get(dev, {})
+
+            
+            
+
+            return {
+                'total_tasks_selected': sum(1 for selected in task_selection.values() if selected),
+                'total_story_points': total_points,
+                'developer_utilization': developer_utilization
+               
             }
-        
-        return {
-            'total_tasks_selected': sum(1 for selected in task_selection.values() if selected),
-            'total_story_points': total_points,
-            'developer_utilization': developer_utilization
-        } 
+        except Exception as e:
+            print(f"Error in get_optimization_summary: {e}")
+            return {
+                'total_tasks_selected': 0,
+                'total_story_points': 0,
+                'developer_utilization': {},
+                'developer_schedules': {}
+            }
+
+def assign_task_dates(task_assignments, task_points, developer_capacity, sprint_start_date, sprint_end_date):
+    sprint_start = datetime.strptime(sprint_start_date, "%Y-%m-%d")
+    sprint_end = datetime.strptime(sprint_end_date, "%Y-%m-%d")
+
+    # Helper function to get working days
+    def get_working_days(start_date, end_date):
+        current_date = start_date
+        working_days = []
+        while current_date <= end_date:
+            if current_date.weekday() < 5:  # Monday to Friday are working days
+                working_days.append(current_date)
+            current_date += timedelta(days=1)
+        return working_days
+
+    working_days = get_working_days(sprint_start, sprint_end)
+
+    # Initialize developer schedules
+    developer_schedules = {dev: {day: 0 for day in working_days} for dev in developer_capacity}
+    developer_task_dates = {dev: {} for dev in developer_capacity}  # Initialize developer task dates
+
+    for (task, developer), assigned in task_assignments.items():
+        if assigned:
+            remaining_points = task_points[task]
+
+            for day in working_days:
+                if remaining_points <= 0:
+                    break
+
+                available_capacity = 8 - developer_schedules[developer][day]
+
+                if available_capacity > 0:
+                    points_to_assign = min(remaining_points, available_capacity)
+                    developer_schedules[developer][day] += points_to_assign
+                    remaining_points -= points_to_assign
+
+                    if day.strftime("%Y-%m-%d") not in developer_task_dates[developer]:
+                        developer_task_dates[developer][day.strftime("%Y-%m-%d")] = []
+
+                    developer_task_dates[developer][day.strftime("%Y-%m-%d")].append({
+                        "task": task,
+                        "points": points_to_assign
+                    })
+
+    return developer_task_dates

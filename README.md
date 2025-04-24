@@ -62,6 +62,7 @@ pip3 install torch torchvision torchaudio
 ```bash
 cd ../frontend
 npm install
+npm install @mui/material @emotion/react @emotion/styled
 ```
 
 4. Create environment files:

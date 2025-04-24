@@ -134,7 +134,7 @@ def show_data_management():
                     'priority': st.selectbox("Priority", [3, 2, 1]),  # High = 3, Medium = 2, Low = 1
                     'story_points': st.number_input("Story Points", min_value=1, max_value=13),
                     'dependencies': st.text_input("Dependencies (comma-separated)"),
-                    'pre_mapped_skills': st.text_input("Required Skills (comma-separated)")
+                    'skills': st.text_input("Required Skills (comma-separated)")
                 }
                 if st.form_submit_button("Add Task"):
                     try:
@@ -152,7 +152,7 @@ def show_data_management():
                 updates = {}
                 for col in st.session_state.backlog_data.columns:
                     if col != 'issue_key':
-                        if col in ['dependencies', 'pre_mapped_skills']:
+                        if col in ['dependencies', 'skills']:
                             updates[col] = st.text_input(col, value=','.join(task[col]) if isinstance(task[col], list) else task[col])
                         elif col == 'priority':
                             updates[col] = st.selectbox(col, [3, 2, 1], index=[3, 2, 1].index(task[col]))  # High = 3, Medium = 2, Low = 1
@@ -360,7 +360,7 @@ def show_sprint_planning():
     if not hasattr(st.session_state, 'backlog_data') or \
        not hasattr(st.session_state, 'sprint_data') or \
        not hasattr(st.session_state, 'team_data'):
-        st.warning("Please upload data or generate dummy data first.")
+        st.warning("No Data.")
         return
     
     # Get data from session state
@@ -388,14 +388,14 @@ def show_sprint_planning():
     
     task_dependencies = dict(zip(backlog_data['issue_key'], backlog_data['dependencies'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
     
-    task_skills = dict(zip(backlog_data['issue_key'], backlog_data['pre_mapped_skills'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
+    task_skills = dict(zip(backlog_data['issue_key'], backlog_data['skills'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
     
     
     developer_skills = dict(zip(team_data['developer_name'], team_data['skill_sets'].apply(lambda x: x.split(';') if isinstance(x, str) else [])))
     
     #print(backlog_data['dependencies'].tolist())
     #print(task_dependencies)
-    #print("Contents of pre_mapped_skills column:", backlog_data['pre_mapped_skills'])
+    #print("Contents of skills column:", backlog_data['skills'])
     
     # Create and solve optimization model
     if st.button("Generate Sprint Plan"):
@@ -425,8 +425,8 @@ def show_sprint_planning():
                 assert isinstance(developer_skills, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(skill, str) for skill in v) for k, v in developer_skills.items()), "Developer skills must be Dict[str, List[str]]"
                 print("All data types are correct.")
                 
-                #print("Data types in pre_mapped_skills column:", backlog_data['pre_mapped_skills'].apply(type).tolist())
-                #print("Entries in pre_mapped_skills column:", backlog_data['pre_mapped_skills'].tolist())
+                #print("Data types in skills column:", backlog_data['skills'].apply(type).tolist())
+                #print("Entries in skills column:", backlog_data['skills'].tolist())
                 
                 optimizer.create_optimization_model(
                     tasks,
