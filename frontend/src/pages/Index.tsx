@@ -1,23 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
+//import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from "@mui/material";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, Users, Activity, Gift, Calendar as CalendarIcon, CheckCircle2, Clock, AlertTriangle, Award, TrendingUp, ChevronRight, History, Filter, LineChart, BarChart as BarChartIcon, PieChart as PieChartIcon, Download, Search, ArrowUp, ArrowDown, Link, List, Layers, Maximize, Check } from "lucide-react";
-import { teamData, dummyBacklog, sprintHistory, sprintSummary, chartConfig, velocityData, burndownData } from "@/data/dummyData";
+import { teamData1, sprintHistory,dummyBacklog1, sprintSummary, chartConfig, velocityData, burndownData } from "@/data/dummyData";
 import BarChart from "@/components/ui/charts/BarChart";
 import PieChart from "@/components/ui/charts/PieChart";
 import SprintChatbot from "@/components/SprintChatbot";
+import { format, addDays, isWeekend } from "date-fns";
+
+
 const extendedChartConfig = {
   ...chartConfig,
   points: {
-    data: dummyBacklog.slice(0, 5).map(item => ({
+    data: dummyBacklog1.slice(0, 5).map(item => ({
       name: item.type,
       value: item.points
     })),
@@ -34,8 +40,18 @@ const extendedChartConfig = {
     valueFormatter: (value: number) => `${value} pts`
   },
   allocation: {
-    data: teamData.slice(0, 5).map(member => ({
+    data: teamData1.slice(0, 5).map(member => ({
       name: member.name.split(" ")[0],
+      value: member.capacity
+    })),
+    index: "name",
+    categories: ["value"],
+    colors: ["#8B5CF6", "#D946EF", "#F97316", "#0EA5E9", "#10B981"],
+    valueFormatter: (value: number) => `${value} pts`
+  },
+  capacity: {
+    data: teamData1.map(member => ({
+      name: member.name,
       value: member.capacity
     })),
     index: "name",
@@ -44,6 +60,134 @@ const extendedChartConfig = {
     valueFormatter: (value: number) => `${value} pts`
   }
 };
+
+const getWorkingDays = (startDate, endDate) => {
+  const workingDays = [];
+  let currentDate = new Date(startDate);
+  while (currentDate <= new Date(endDate)) {
+    if (!isWeekend(currentDate)) {
+      workingDays.push(new Date(currentDate));
+    }
+    currentDate = addDays(currentDate, 1);
+  }
+  return workingDays;
+};
+
+const taskColors = {};
+const getTaskColor = (task) => {
+  if (!taskColors[task]) {
+    const colorPalette = ["bg-red-200", "bg-blue-200", "bg-green-200", "bg-yellow-200", "bg-purple-200", "bg-pink-200", "bg-teal-200", "bg-orange-200"];
+    const colorIndex = Object.keys(taskColors).length % colorPalette.length;
+    taskColors[task] = colorPalette[colorIndex];
+  }
+  return taskColors[task];
+};
+
+const TaskAssignmentTable = ({ developers, startDate, endDate,sprintAssignment }) => {
+  const workingDays = getWorkingDays(startDate, endDate);
+
+  // Updated dummy task assignments for demonstration
+  /*const dummyAssignments = {
+    "Developer 1": {
+      "2025-04-07": ["Task 1", "Task 2"],
+      "2025-04-08": ["Task 1", "Task 3"],
+    },
+    "Developer 2": {
+      "2025-04-07": ["Task 4"],
+      "2025-04-08": ["Task 5", "Task 6"],
+    },
+    "Developer 3": {
+      "2025-04-07": ["Task 7"],
+      "2025-04-09": ["Task 8", "Task 9"],
+    },
+  };*/
+
+  const dummyAssignments = React.useMemo(() => {
+    const assignments = {};
+    console.log("Sprint Assignment:", sprintAssignment);
+    Object.entries(sprintAssignment || {}).forEach(([developer, data]) => {
+      if (data.schedule) {
+        Object.entries(data.schedule).forEach(([date, tasks]) => {
+          tasks.forEach((taskEntry) => {
+            if (!assignments[developer]) {
+              assignments[developer] = {};
+            }
+            if (!assignments[developer][date]) {
+              assignments[developer][date] = [];
+            }
+            assignments[developer][date].push({
+              task: taskEntry.task,
+              points: taskEntry.points
+            });
+          });
+        });
+      }
+    });
+    return assignments;
+  }, [sprintAssignment]);
+
+  console.log("Dummy Assignments:", dummyAssignments);
+
+  const renderTaskBlocks = (developerName, day, task) => {
+    const isContinuation = workingDays.some((prevDay) => {
+      const prevDate = format(prevDay, "yyyy-MM-dd");
+      return dummyAssignments[developerName]?.[prevDate]?.some(t => t.task === task.task);
+    });
+
+    const truncatedTask = task.task.length > 15 ? `${task.task.slice(0, 15)}...` : task.task;
+
+    return (
+      <div
+        className={`${getTaskColor(task.task)} text-black p-1 rounded text-center whitespace-nowrap ${isContinuation ? "rounded-l-none" : ""}`}
+        title={`Task: ${task.task}\nPoints: ${task.points}\nDeveloper: ${developerName}`}
+      >
+        <div>{truncatedTask}</div>
+        <div className="text-xs">{task.points} pts</div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="overflow-auto" style={{ maxHeight: "800px" }}>
+  <Table>
+    <TableHeader>
+      <TableRow className="sticky top-0 bg-white z-10">
+        {/* Sticky Developer Column Header */}
+        <TableHead className="sticky top-0 left-0 bg-white z-20">Developer</TableHead>
+        {workingDays.map((day, index) => (
+          <TableHead key={index} className="sticky top-0 bg-white z-10">
+            {format(day, "dd MMM")}
+          </TableHead>
+        ))}
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {developers.map((developer) => (
+        <TableRow key={developer.name}>
+          {/* Sticky Developer Column */}
+          <TableCell className="sticky left-0 bg-white z-10">{developer.name}</TableCell>
+          {workingDays.map((day, index) => (
+            <TableCell key={index}>
+              {dummyAssignments[developer.name]?.[format(day, "yyyy-MM-dd")] ? (
+                <div className="flex flex-col gap-1">
+                  {dummyAssignments[developer.name][format(day, "yyyy-MM-dd")].map((task, taskIndex) =>
+                    renderTaskBlocks(developer.name, day, task)
+                  )}
+                </div>
+              ) : (
+                "-"
+              )}
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
+   
+  );
+};
+
 const SprintPlanningDashboard = () => {
   const [activeTab, setActiveTab] = useState("upload");
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -62,6 +206,38 @@ const SprintPlanningDashboard = () => {
     totalTasks: 7,
     teamMembers: 7
   }]);
+  const [dummyBacklog, setDummyBacklog] = useState([]);
+
+  useEffect(() => {
+    const fetchBacklog = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/backlog/tasks");
+        console.log("Backlog data fetched:", response.data);
+        setDummyBacklog(response.data.tasks);
+      } catch (error) {
+        console.error("Error fetching backlog data:", error);
+      }
+    };
+
+    fetchBacklog();
+  }, []);
+
+  const [teamData, setTeamData] = useState([]);
+
+  useEffect(() => {
+    const fetchBacklog = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/team/members");
+        console.log("Backlog data fetched:", response.data);
+        setTeamData(response.data.members);
+      } catch (error) {
+        console.error("Error fetching backlog data:", error);
+      }
+    };
+
+    fetchBacklog();
+  }, []);
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     toast({
@@ -83,26 +259,49 @@ const SprintPlanningDashboard = () => {
       });
     }
   };
-  const generatePlan = () => {
-    setActiveTab("results");
-    toast({
-      title: "Sprint Plan Generated",
-      description: "AI has generated the optimal sprint plan based on the provided data."
-    });
+  const [sprintAssignment, setSprintAssignment] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const generatePlan = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/sprint/task-distribution");
+      console.log("Sprint assignment data:",response.data.optimization_summary.developer_utilization);
+      setSprintAssignment(response.data.optimization_summary.developer_utilization);
+      
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        setActiveTab("results");
+        toast({
+          title: "Sprint Plan Generated",
+          description: "AI has generated the optimal sprint plan based on the provided data."
+        });
+      }, 4000);
+    } catch (error) {
+      console.error("Error syncing from JIRA:", error);
+      toast({
+        title: "Sync Failed",
+        description: "Could not refresh Product Backlog from JIRA.",
+        variant: "destructive"
+      });
+    }
+
+
+
+    
   };
   const getPriorityBadge = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return <Badge className="bg-orange-500">{priority}</Badge>;
-      case "medium":
-        return <Badge className="bg-blue-500">{priority}</Badge>;
-      case "low":
-        return <Badge className="bg-purple-500">{priority}</Badge>;
+    switch (priority) {
+      case "3":
+        return <Badge className="bg-orange-500">High</Badge>;
+      case "2":
+        return <Badge className="bg-blue-500">Medium</Badge>;
+      case "1":
+        return <Badge className="bg-purple-500">Low</Badge>;
       default:
         return <Badge>{priority}</Badge>;
     }
   };
-  const filteredBacklog = dummyBacklog.filter(task => task.id.toLowerCase().includes(searchTerm.toLowerCase()) || task.summary.toLowerCase().includes(searchTerm.toLowerCase()) || task.assigned.toLowerCase().includes(searchTerm.toLowerCase()) || task.skills.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredBacklog = dummyBacklog.filter(task => task.issue_key.toLowerCase().includes(searchTerm.toLowerCase()) || task.summary.toLowerCase().includes(searchTerm.toLowerCase()) || task.assigned.toLowerCase().includes(searchTerm.toLowerCase()) || task.skills.toLowerCase().includes(searchTerm.toLowerCase()));
   const getCompletionRate = (completed: number, planned: number) => {
     return Math.round(completed / planned * 100);
   };
@@ -130,7 +329,55 @@ const SprintPlanningDashboard = () => {
   const getCurrentSprint = () => {
     return sprints.find(s => s.id === currentSprintId) || sprints[0];
   };
-  return <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-background">
+
+  const handleSyncFromJIRA = async () => {
+    try {
+      const response1 = await axios.get("http://localhost:8000/api/sync/jira");
+      const response = await axios.get("http://localhost:8000/api/backlog/tasks");
+      setDummyBacklog(response.data.tasks);
+      toast({
+        title: "Sync Successful",
+        description: "Product Backlog has been refreshed from JIRA."
+      });
+    } catch (error) {
+      console.error("Error syncing from JIRA:", error);
+      toast({
+        title: "Sync Failed",
+        description: "Could not refresh Product Backlog from JIRA.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-background">
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="flex flex-col items-center">
+            <svg
+              className="animate-spin h-8 w-8 text-white mb-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.879 4.63 2.343 6.343l1.657-1.052z"
+              ></path>
+            </svg>
+            <div className="text-white text-lg font-bold">Generating Sprint Plan...</div>
+          </div>
+        </div>
+      )}
       <header className="bg-gradient-to-r from-primary to-accent p-6 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/10 animate-pulse"></div>
         <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl"></div>
@@ -146,12 +393,12 @@ const SprintPlanningDashboard = () => {
           </div>
           <p className="text-white/80 max-w-xl">AI-Driven Sprint Planning & Prioritization System that optimizes team workload and maximizes delivery efficiency</p>
           
-          <div className="flex flex-wrap gap-3 mt-4">
+          {/* <div className="flex flex-wrap gap-3 mt-4">
             <Badge className="bg-white/20 hover:bg-white/30 transition-colors">AI-Powered</Badge>
             <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Machine Learning</Badge>
             <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Team Optimization</Badge>
             <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Resource Planning</Badge>
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -186,7 +433,7 @@ const SprintPlanningDashboard = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-5 mb-8 bg-card p-1 rounded-xl shadow-md">
             <TabsTrigger value="upload" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <Upload size={18} /> Data Upload
+              <Upload size={18} /> Sprint Details
             </TabsTrigger>
             <TabsTrigger value="team" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
               <Users size={18} /> Team Data
@@ -204,71 +451,7 @@ const SprintPlanningDashboard = () => {
 
           <TabsContent value="upload">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="border-t-4 border-t-4 border-t-primary shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-                  <CardTitle className="flex items-center">
-                    <Upload className="mr-2 text-primary" /> Upload Data Files
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6 pt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="backlog-file" className="text-sm font-medium flex items-center">
-                      <FileText className="mr-2 h-4 w-4 text-primary" /> Product Backlog
-                    </Label>
-                    <Input id="backlog-file" type="file" onChange={handleFileUpload} className="border-dashed" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      CSV or JSON file with backlog items (12 items found)
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sprint-history-file" className="text-sm font-medium flex items-center">
-                      <Activity className="mr-2 h-4 w-4 text-primary" /> Sprint History
-                    </Label>
-                    <Input id="sprint-history-file" type="file" onChange={handleFileUpload} className="border-dashed" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      CSV or JSON file with previous sprints (6 sprints found)
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="team-file" className="text-sm font-medium flex items-center">
-                      <Users className="mr-2 h-4 w-4 text-primary" /> Team Data
-                    </Label>
-                    <Input id="team-file" type="file" onChange={handleFileUpload} className="border-dashed" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      CSV or JSON file with team member details (7 members found)
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-t-4 border-t-accent shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
-                  <CardTitle className="flex items-center">
-                    <FileText className="mr-2 text-accent" /> Download Templates
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have the data ready? Download our template files to get started.
-                  </p>
-                  <div className="flex flex-col gap-4">
-                    <Button variant="outline" onClick={() => downloadDummyFile("Product Backlog")} className="border-dashed hover:bg-primary/10 hover:border-primary">
-                      <FileText className="mr-2 h-4 w-4 text-primary" />
-                      Product Backlog Template
-                    </Button>
-                    <Button variant="outline" onClick={() => downloadDummyFile("Sprint History")} className="border-dashed hover:bg-accent/10 hover:border-accent">
-                      <Activity className="mr-2 h-4 w-4 text-accent" />
-                      Sprint History Template
-                    </Button>
-                    <Button variant="outline" onClick={() => downloadDummyFile("Team Data")} className="border-dashed hover:bg-secondary/10 hover:border-secondary">
-                      <Users className="mr-2 h-4 w-4 text-secondary" />
-                      Team Data Template
-                    </Button>
-                  </div>
-
-                  
-                </CardContent>
-              </Card>
+              
 
               <Card className="md:col-span-2 border-t-4 border-t-secondary shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="bg-gradient-to-r from-secondary/10 to-transparent">
@@ -344,7 +527,7 @@ const SprintPlanningDashboard = () => {
                         </div>
                         <div className="text-sm flex justify-between items-center">
                           <span>High Priority</span>
-                          <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === "High").length}</Badge>
+                          <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === 1).length}</Badge>
                         </div>
                         <div className="text-sm flex justify-between items-center">
                           <span>Total Points</span>
@@ -425,7 +608,7 @@ const SprintPlanningDashboard = () => {
                       <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-lg flex justify-between items-center">
-                          <span>{member.name.split(" ")[0]}</span>
+                          <span>{member.name}</span>
                           <Badge variant="outline" className="text-xs">{member.capacity} pts</Badge>
                         </CardTitle>
                       </CardHeader>
@@ -524,6 +707,9 @@ const SprintPlanningDashboard = () => {
                     <Button variant="outline" size="sm" className="text-xs h-9">
                       <Download className="h-4 w-4 mr-1" /> Export
                     </Button>
+                    <Button variant="default" size="sm" className="text-xs h-9" onClick={handleSyncFromJIRA}>
+                      Sync from JIRA
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -543,9 +729,9 @@ const SprintPlanningDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredBacklog.map(task => <React.Fragment key={task.id}>
-                          <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}>
-                            <TableCell className="font-medium">{task.id}</TableCell>
+                      {filteredBacklog.map(task => <React.Fragment key={task.issue_key}>
+                          <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={() => setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key)}>
+                            <TableCell className="font-medium">{task.issue_key}</TableCell>
                             <TableCell className="max-w-xs">
                               <div className="truncate">{task.summary}</div>
                             </TableCell>
@@ -574,13 +760,13 @@ const SprintPlanningDashboard = () => {
                             <TableCell>
                               <Button variant="ghost" size="icon" onClick={e => {
                             e.stopPropagation();
-                            setExpandedTask(expandedTask === task.id ? null : task.id);
+                            setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key);
                           }}>
-                                {expandedTask === task.id ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                                {expandedTask === task.issue_key ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
                               </Button>
                             </TableCell>
                           </TableRow>
-                          {expandedTask === task.id && <TableRow className="bg-muted/30 hover:bg-muted/50">
+                          {expandedTask === task.issue_key && <TableRow className="bg-muted/30 hover:bg-muted/50">
                               <TableCell colSpan={7} className="p-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
@@ -630,14 +816,14 @@ const SprintPlanningDashboard = () => {
                                         <span className="text-muted-foreground">Confidence:</span>
                                         <div className="w-full bg-muted rounded-full h-2 mt-1">
                                           <div className="bg-gradient-to-r from-primary to-accent h-2 rounded-full" style={{
-                                      width: `${85 - Number(task.id.slice(-1)) * 5}%`
+                                      width: `${85 - Number(task.issue_key.slice(-1)) * 5}%`
                                     }}></div>
                                       </div>
                                       </div>
                                       <div>
                                         <span className="text-muted-foreground">Dependencies:</span>
                                         <div className="flex gap-1 mt-1">
-                                          {task.id !== "TSK-001" && <Badge variant="outline" className="text-xs">TSK-00{Number(task.id.split("-")[1]) - 1}</Badge>}
+                                          {task.issue_key !== "TSK-001" && <Badge variant="outline" className="text-xs">TSK-00{Number(task.issue_key.split("-")[1]) - 1}</Badge>}
                                         </div>
                                       </div>
                                     </div>
@@ -804,7 +990,9 @@ const SprintPlanningDashboard = () => {
           
           <TabsContent value="results">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-2 space-y-6">
+              <div className="md:col-span-1 space-y-6">
+              </div>
+              <div className="md:col-span-3 space-y-6">
                 <Card className="border-t-4 border-t-primary shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
                     <CardTitle className="flex items-center">
@@ -818,45 +1006,24 @@ const SprintPlanningDashboard = () => {
                         {getCurrentSprint().startDate} - {getCurrentSprint().endDate} • {getCurrentSprint().duration} days • {getCurrentSprint().totalPoints} story points • {getCurrentSprint().teamMembers} team members
                       </p>
                     </div>
+
+                    <Card className="border-t-4 border-t-primary shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+                    <CardTitle className="flex items-center">
+                      Task Assignment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <TaskAssignmentTable 
+                      developers={teamData} 
+                      startDate={getCurrentSprint().startDate} 
+                      endDate={getCurrentSprint().endDate}
+                      sprintAssignment={sprintAssignment} 
+                    />
+                  </CardContent>
+                </Card>
                     
-                    <div className="rounded-lg border">
-                      <Table>
-                        <TableCaption>Recommended tasks for {getCurrentSprint().name}</TableCaption>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Task</TableHead>
-                            <TableHead>Points</TableHead>
-                            <TableHead>Assigned To</TableHead>
-                            <TableHead>Confidence</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {dummyBacklog.slice(0, 7).map(task => <TableRow key={task.id} className="hover:bg-muted/50">
-                              <TableCell className="font-medium">{task.id}</TableCell>
-                              <TableCell className="max-w-xs">
-                                <div className="truncate">{task.summary}</div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="bg-secondary/10">
-                                  {task.points} pts
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  {task.assigned}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  <Progress value={92 - Number(task.id.slice(-1)) * 3} className="h-1.5 w-16" />
-                                  <span className="text-xs">{92 - Number(task.id.slice(-1)) * 3}%</span>
-                                </div>
-                              </TableCell>
-                            </TableRow>)}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
                       <Card className="bg-muted/30">
@@ -896,18 +1063,11 @@ const SprintPlanningDashboard = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="border-t-4 border-t-secondary shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-secondary/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <LineChart className="mr-2 text-secondary" /> Projected Burndown
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-[300px]">
-                    <BarChart {...extendedChartConfig.projectedBurndown} />
-                  </CardContent>
-                </Card>
+                
 
                 <SprintChatbot sprintName={getCurrentSprint().name} sprintData={getCurrentSprint()} />
+                
+                
               </div>
               
               <div className="space-y-6">
@@ -1014,6 +1174,7 @@ const SprintPlanningDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
-    </div>;
+    </div>
+  );
 };
 export default SprintPlanningDashboard;
