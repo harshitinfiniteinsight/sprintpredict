@@ -131,10 +131,10 @@ def show_data_management():
                     'issue_key': st.text_input("Issue Key"),
                     'summary': st.text_input("Summary"),
                     'description': st.text_area("Description"),
-                    'priority': st.selectbox("Priority", ["High", "Medium", "Low"]),
+                    'priority': st.selectbox("Priority", [3, 2, 1]),  # High = 3, Medium = 2, Low = 1
                     'story_points': st.number_input("Story Points", min_value=1, max_value=13),
                     'dependencies': st.text_input("Dependencies (comma-separated)"),
-                    'pre_mapped_skills': st.text_input("Required Skills (comma-separated)")
+                    'skills': st.text_input("Required Skills (comma-separated)")
                 }
                 if st.form_submit_button("Add Task"):
                     try:
@@ -152,10 +152,10 @@ def show_data_management():
                 updates = {}
                 for col in st.session_state.backlog_data.columns:
                     if col != 'issue_key':
-                        if col in ['dependencies', 'pre_mapped_skills']:
-                            updates[col] = st.text_input(col, value=','.join(task[col]))
+                        if col in ['dependencies', 'skills']:
+                            updates[col] = st.text_input(col, value=','.join(task[col]) if isinstance(task[col], list) else task[col])
                         elif col == 'priority':
-                            updates[col] = st.selectbox(col, ["High", "Medium", "Low"], index=["High", "Medium", "Low"].index(task[col]))
+                            updates[col] = st.selectbox(col, [3, 2, 1], index=[3, 2, 1].index(task[col]))  # High = 3, Medium = 2, Low = 1
                         elif col == 'story_points':
                             updates[col] = st.number_input(col, min_value=1, max_value=13, value=int(task[col]))
                         else:
@@ -360,7 +360,7 @@ def show_sprint_planning():
     if not hasattr(st.session_state, 'backlog_data') or \
        not hasattr(st.session_state, 'sprint_data') or \
        not hasattr(st.session_state, 'team_data'):
-        st.warning("Please upload data or generate dummy data first.")
+        st.warning("No Data.")
         return
     
     # Get data from session state
@@ -370,25 +370,64 @@ def show_sprint_planning():
     
     # Prepare data for optimization
     tasks = backlog_data['issue_key'].tolist()
+    
+    
     developers = team_data['developer_name'].tolist()
     
     task_priorities = dict(zip(backlog_data['issue_key'], backlog_data['priority']))
-    task_points = dict(zip(backlog_data['issue_key'], backlog_data['story_points']))
+    
+    task_points = dict(zip(backlog_data['issue_key'], backlog_data['story_points'].astype(int)))  # Ensure integers
+    
     
     # Use effective capacity if available, otherwise use regular capacity
     if 'effective_capacity' in team_data.columns:
-        developer_capacity = dict(zip(team_data['developer_name'], team_data['effective_capacity']))
+        developer_capacity = dict(zip(team_data['developer_name'], team_data['effective_capacity'].astype(int)))  # Ensure integers
     else:
-        developer_capacity = dict(zip(team_data['developer_name'], team_data['capacity']))
+        developer_capacity = dict(zip(team_data['developer_name'], team_data['capacity'].astype(int)))  # Ensure integers
     
-    task_dependencies = dict(zip(backlog_data['issue_key'], backlog_data['dependencies']))
-    task_skills = dict(zip(backlog_data['issue_key'], backlog_data['pre_mapped_skills']))
-    developer_skills = dict(zip(team_data['developer_name'], team_data['skill_sets']))
+    
+    task_dependencies = dict(zip(backlog_data['issue_key'], backlog_data['dependencies'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
+    
+    task_skills = dict(zip(backlog_data['issue_key'], backlog_data['skills'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
+    
+    
+    developer_skills = dict(zip(team_data['developer_name'], team_data['skill_sets'].apply(lambda x: x.split(';') if isinstance(x, str) else [])))
+    
+    #print(backlog_data['dependencies'].tolist())
+    #print(task_dependencies)
+    #print("Contents of skills column:", backlog_data['skills'])
     
     # Create and solve optimization model
     if st.button("Generate Sprint Plan"):
         with st.spinner("Generating optimal sprint plan..."):
             try:
+                print("Clicked")
+
+                # Debugging: Check data types
+                print("Checking data types...")
+                
+                assert isinstance(tasks, list) and all(isinstance(t, str) for t in tasks), "Tasks must be List[str]"
+                
+                assert isinstance(developers, list) and all(isinstance(d, str) for d in developers), "Developers must be List[str]"
+                
+                assert isinstance(task_priorities, dict) and all(isinstance(k, str) and isinstance(v, int) for k, v in task_priorities.items()), "Task priorities must be Dict[str, int]"
+                
+                assert isinstance(task_points, dict) and all(isinstance(k, str) and isinstance(v, (int, float)) for k, v in task_points.items()), "Task points must be Dict[str, float]"
+                
+                assert isinstance(developer_capacity, dict) and all(isinstance(k, str) and isinstance(v, (int, float)) for k, v in developer_capacity.items()), "Developer capacity must be Dict[str, float]"
+                
+                
+                assert isinstance(task_dependencies, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(dep, str) for dep in v) for k, v in task_dependencies.items()), "Task dependencies must be Dict[str, List[str]]"
+                
+                print(task_skills)
+                assert isinstance(task_skills, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(skill, str) for skill in v) for k, v in task_skills.items()), "Task skills must be Dict[str, List[str]]"
+                print(developer_skills)
+                assert isinstance(developer_skills, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(skill, str) for skill in v) for k, v in developer_skills.items()), "Developer skills must be Dict[str, List[str]]"
+                print("All data types are correct.")
+                
+                #print("Data types in skills column:", backlog_data['skills'].apply(type).tolist())
+                #print("Entries in skills column:", backlog_data['skills'].tolist())
+                
                 optimizer.create_optimization_model(
                     tasks,
                     developers,
@@ -399,15 +438,16 @@ def show_sprint_planning():
                     task_skills,
                     developer_skills
                 )
-                
+                print("Solve")
                 task_selection, task_assignments = optimizer.solve()
+                print("Optimisation Summary")
                 optimization_summary = optimizer.get_optimization_summary(
                     task_selection,
                     task_assignments,
                     task_points,
                     developer_capacity
                 )
-                
+                print("Store results in session state")
                 # Store results in session state
                 st.session_state.task_selection = task_selection
                 st.session_state.task_assignments = task_assignments
@@ -494,4 +534,4 @@ def show_results():
     )
 
 if __name__ == "__main__":
-    main() 
+    main()

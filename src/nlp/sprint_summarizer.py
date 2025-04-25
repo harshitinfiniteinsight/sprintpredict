@@ -130,6 +130,7 @@ Sprint Plan Details:
             deps = input_data['task_dependencies'][task]
             if deps:
                 prompt += f"- {task} depends on: {', '.join(deps)}\n"
+        # Updated to handle dependencies as lists
         
         # Add skill matching
         prompt += "\n4. Skill Matching:\n"
@@ -146,4 +147,4 @@ Sprint Plan Details:
         prompt += "3. Potential risks and challenges\n"
         prompt += "4. Recommendations for successful sprint execution\n"
         
-        return prompt 
+        return prompt

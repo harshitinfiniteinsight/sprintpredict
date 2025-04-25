@@ -52,12 +52,17 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+pip install streamlit #streamlit run app.py #in case need to run streamlit 
+pip install transformers
+pip3 install torch torchvision torchaudio
+#streamlit run app.py #in case need to run streamlit 
 ```
 
 3. Set up the frontend:
 ```bash
 cd ../frontend
 npm install
+npm install @mui/material @emotion/react @emotion/styled
 ```
 
 4. Create environment files:

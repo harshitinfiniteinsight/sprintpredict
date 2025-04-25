@@ -144,7 +144,7 @@ class DummyDataGenerator:
                     'priority': np.random.choice(self.priorities),
                     'story_points': story_points,
                     'dependencies': ','.join(dependencies),
-                    'pre_mapped_skills': ';'.join(required_skills),
+                    'skills': ','.join(required_skills),
                     'status': status,
                     'sprint_id': sprint_id
                 }
@@ -369,7 +369,7 @@ class DummyDataGenerator:
                 'priority': priority,
                 'story_points': story_points,
                 'dependencies': ','.join(dependencies),
-                'pre_mapped_skills': ';'.join(required_skills),
+                'skills': ','.join(required_skills),
                 'status': 'Backlog',
                 'sprint_id': ''
             }

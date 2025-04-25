@@ -21,7 +21,7 @@ class DummyDataGenerator:
             "Technical Lead", "Architect", "QA Engineer", "Security Engineer"
         ]
         
-        self.priorities = ["High", "Medium", "Low"]
+        self.priorities = [3, 2, 1]  # High = 3, Medium = 2, Low = 1
         
     def generate_backlog(self, num_tasks: int = 200) -> pd.DataFrame:
         """Generate dummy product backlog data."""
@@ -121,4 +121,4 @@ class DummyDataGenerator:
             "backlog": backlog_df,
             "sprint_data": sprint_df,
             "team_data": team_df
-        } 
+        }

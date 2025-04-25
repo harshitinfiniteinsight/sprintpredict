@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from typing import Tuple, Dict, List, Any, Optional, Union
 from pathlib import Path
+from optimization.sprint_optimizer import SprintOptimizer
+
+optimizer = SprintOptimizer()
 
 class DataLoader:
     def __init__(self):
@@ -14,6 +17,8 @@ class DataLoader:
         self.sprint_data = None
         self.team_data = None
         self.future_capacity_data = None
+
+        self.load_team_data(self.data_dir / "dummy" / "team_data.csv")  # Load team data during initialization
     
     def load_backlog(self, file_path: Union[str, Path]) -> bool:
         """Load product backlog data."""
@@ -22,14 +27,14 @@ class DataLoader:
             
             # Ensure required columns exist
             required_columns = ['issue_key', 'summary', 'description', 'priority', 'story_points', 
-                              'dependencies', 'pre_mapped_skills', 'status', 'sprint_id']
+                              'dependencies', 'skills', 'status', 'sprint_id']
             for col in required_columns:
                 if col not in df.columns:
                     df[col] = None
             
             # Convert string representations of lists to actual lists
             df['dependencies'] = df['dependencies'].apply(lambda x: x.split(',') if pd.notna(x) else [])
-            df['pre_mapped_skills'] = df['pre_mapped_skills'].apply(lambda x: x.split(';') if pd.notna(x) else [])
+            df['skills'] = df['skills'].apply(lambda x: x.split(';') if pd.notna(x) else [])
             
             self.backlog_data = df
             return True
@@ -92,6 +97,23 @@ class DataLoader:
         except Exception as e:
             print(f"Error loading future capacity data: {str(e)}")
             return False
+    
+    def get_team_data(self) -> pd.DataFrame:
+        """Get team data."""
+        if self.team_data is None or self.team_data.empty:
+            return pd.DataFrame()
+        
+        team_members = [
+            {
+                "name": row["developer_name"],
+                "role": row["role"],
+                "capacity": row["capacity"],
+                "skills": ", ".join(row["skill_sets"]),
+                "email": row.get("email", "")
+            }
+            for _, row in self.team_data.iterrows()  
+        ]
+        return team_members
     
     def get_backlog_tasks(self) -> pd.DataFrame:
         """Get tasks that are available for planning (in backlog or future sprints)."""
@@ -195,7 +217,28 @@ class DataLoader:
         
         # Convert dependencies and skills to strings
         task_data['dependencies'] = ','.join(task_data.get('dependencies', []))
-        task_data['pre_mapped_skills'] = ';'.join(task_data.get('pre_mapped_skills', []))
+        task_data['skills'] = ','.join(task_data.get('skills', []))
+
+        print(task_data)
+        
+        # Add the task
+        self.backlog_data = pd.concat([
+            self.backlog_data,
+            pd.DataFrame([task_data])
+        ], ignore_index=True)
+
+    def deleteAll_task(self) -> None:
+        """Add a new task to the backlog."""
+        self.backlog_data = None
+        
+
+    def add_rep_task(self, task_data: Dict[str, Any]) -> None:
+        """Add a new task to the backlog."""
+        if self.backlog_data is None:
+            self.backlog_data = pd.DataFrame()
+        
+        # Convert dependencies and skills to strings
+        print(task_data)
         
         # Add the task
         self.backlog_data = pd.concat([
@@ -216,8 +259,8 @@ class DataLoader:
         # Convert dependencies and skills to strings if present
         if 'dependencies' in updates:
             updates['dependencies'] = ','.join(updates['dependencies'])
-        if 'pre_mapped_skills' in updates:
-            updates['pre_mapped_skills'] = ';'.join(updates['pre_mapped_skills'])
+        if 'skills' in updates:
+            updates['skills'] = ';'.join(updates['skills'])
         
         # Update the task
         for key, value in updates.items():
@@ -355,7 +398,7 @@ class DataLoader:
         if self.backlog_data is None:
             raise ValueError("Backlog data not loaded")
         
-        return dict(zip(self.backlog_data['issue_key'], self.backlog_data['pre_mapped_skills']))
+        return dict(zip(self.backlog_data['issue_key'], self.backlog_data['skills']))
     
     def get_developer_skills(self) -> Dict[str, List[str]]:
         """Get the skills for each developer."""
@@ -390,4 +433,97 @@ class DataLoader:
         if self.team_data is None:
             raise ValueError("Team data not loaded")
         
-        return dict(zip(self.team_data['developer_name'], self.team_data['effective_capacity'])) 
+        return dict(zip(self.team_data['developer_name'], self.team_data['effective_capacity']))
+    
+    def get_task_distribution(self) -> Dict[str, List[str]]:
+        """Get the distribution of tasks across sprints."""
+        if self.backlog_data is None:
+            raise ValueError("Backlog data not loaded")
+        if self.team_data is None:
+            raise ValueError("Team data not loaded")
+        
+        tasks = self.backlog_data['issue_key'].tolist()
+
+        
+    
+    
+        developers = self.team_data['developer_name'].tolist()
+        
+
+        task_priorities = dict(zip(self.backlog_data['issue_key'], self.backlog_data['priority']))
+        
+    
+        task_points = dict(zip(self.backlog_data['issue_key'], self.backlog_data['story_points'].astype(int)))  # Ensure integers
+        
+    
+    
+        # Use effective capacity if available, otherwise use regular capacity
+
+        if 'effective_capacity' in self.team_data.columns:
+            developer_capacity = dict(zip(self.team_data['developer_name'], self.team_data['effective_capacity'].astype(int)))  # Ensure integers
+        else:
+            developer_capacity = dict(zip(self.team_data['developer_name'], self.team_data['capacity'].astype(int)))  # Ensure integers
+        
+        
+    
+        
+        task_dependencies = dict(zip(self.backlog_data['issue_key'], self.backlog_data['dependencies'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
+
+        
+    
+        task_skills = dict(zip(self.backlog_data['issue_key'], self.backlog_data['skills'].apply(lambda x: x.split(',') if isinstance(x, str) else [])))
+
+        
+    
+        
+        developer_skills = dict(zip(self.team_data['developer_name'], self.team_data['skill_sets']))
+
+        
+
+        assert isinstance(tasks, list) and all(isinstance(t, str) for t in tasks), "Tasks must be List[str]"
+                
+        assert isinstance(developers, list) and all(isinstance(d, str) for d in developers), "Developers must be List[str]"
+                
+        assert isinstance(task_priorities, dict) and all(isinstance(k, str) and isinstance(v, int) for k, v in task_priorities.items()), "Task priorities must be Dict[str, int]"
+                
+        assert isinstance(task_points, dict) and all(isinstance(k, str) and isinstance(v, (int, float)) for k, v in task_points.items()), "Task points must be Dict[str, float]"
+                
+        assert isinstance(developer_capacity, dict) and all(isinstance(k, str) and isinstance(v, (int, float)) for k, v in developer_capacity.items()), "Developer capacity must be Dict[str, float]"
+                
+                
+        assert isinstance(task_dependencies, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(dep, str) for dep in v) for k, v in task_dependencies.items()), "Task dependencies must be Dict[str, List[str]]"
+                
+       
+        assert isinstance(task_skills, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(skill, str) for skill in v) for k, v in task_skills.items()), "Task skills must be Dict[str, List[str]]"
+        
+        assert isinstance(developer_skills, dict) and all(isinstance(k, str) and isinstance(v, list) and all(isinstance(skill, str) for skill in v) for k, v in developer_skills.items()), "Developer skills must be Dict[str, List[str]]"
+        print("All data types are correct.")
+        print("Task Length",developer_capacity)
+
+        optimizer.create_optimization_model(
+                    tasks,
+                    developers,
+                    task_priorities,
+                    task_points,
+                    developer_capacity,
+                    task_dependencies,
+                    task_skills,
+                    developer_skills
+                )
+        print("Solve")
+        #task_selection, task_assignments = optimizer.solve(time_limit=5.0)
+        task_selection, task_assignments = optimizer.solve()
+        print("Task Selection")
+        print(task_selection)
+        print("Task Assignments")
+        print(task_assignments)
+        print("Optimisation Summary")
+        optimization_summary = optimizer.get_optimization_summary(
+                    task_selection,
+                    task_assignments,
+                    task_points,
+                    developer_capacity
+                )
+        
+        
+        return optimization_summary

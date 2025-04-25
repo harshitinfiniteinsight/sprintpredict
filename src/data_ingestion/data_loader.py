@@ -16,13 +16,12 @@ class DataLoader:
         # Standardize column names
         df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
         
-        # Convert priority to numeric values
-        priority_map = {'high': 3, 'medium': 2, 'low': 1}
-        df['priority'] = df['priority'].str.lower().map(priority_map)
+        # Remove the priority mapping logic as priorities are now integers
+        # df['priority'] = df['priority'].str.lower().map(priority_map)
         
         # Convert dependencies to list
         df['dependencies'] = df['dependencies'].fillna('').apply(
-            lambda x: [dep.strip() for dep in str(x).split(',') if dep.strip()]
+            lambda x: x.split(',') if isinstance(x, str) else []
         )
         
         # Convert pre-mapped skills to list
@@ -251,4 +250,4 @@ class DataLoader:
     
     def delete_sprint(self, sprint_id: str):
         """Delete a sprint from the sprint data."""
-        self.sprint_data = self.sprint_data[self.sprint_data['sprint_id'] != sprint_id] 
+        self.sprint_data = self.sprint_data[self.sprint_data['sprint_id'] != sprint_id]

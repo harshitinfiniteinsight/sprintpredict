@@ -150,7 +150,7 @@ class SprintVisualizer:
             task_skills = set(
                 self.backlog_data[
                     self.backlog_data['issue_key'] == task
-                ]['pre_mapped_skills'].iloc[0].split(';')
+                ]['skills'].iloc[0].split(';')
             )
             
             for j, dev in enumerate(developers):
