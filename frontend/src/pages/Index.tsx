@@ -12,13 +12,17 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileText, Users, Activity, Gift, Calendar as CalendarIcon, CheckCircle2, Clock, AlertTriangle, Award, TrendingUp, ChevronRight, History, Filter, LineChart, BarChart as BarChartIcon, PieChart as PieChartIcon, Download, Search, ArrowUp, ArrowDown, Link, List, Layers, Maximize, Check } from "lucide-react";
+import { Upload, FileText, Users, Activity, Gift, Calendar as CalendarIcon, CheckCircle2, Clock, AlertTriangle, Award, TrendingUp, ChevronRight, History, Filter, LineChart, BarChart as BarChartIcon, PieChart as PieChartIcon, Download, Search, ArrowUp, ArrowDown, List, Layers, Maximize, Check } from "lucide-react";
 import { teamData1, sprintHistory,dummyBacklog1, sprintSummary, chartConfig, velocityData, burndownData } from "@/data/dummyData";
 import BarChart from "@/components/ui/charts/BarChart";
 import PieChart from "@/components/ui/charts/PieChart";
 import SprintChatbot from "@/components/SprintChatbot";
 import { format, addDays, isWeekend } from "date-fns";
-
+import { Link, Route, Routes } from "react-router-dom";
+import TeamData from "./TeamData";
+import ProductBacklog from "./ProductBacklog";
+import SprintHistory from "./SprintHistory";
+import VelocityChart from "./VelocityChart";
 
 const extendedChartConfig = {
   ...chartConfig,
@@ -83,31 +87,83 @@ const getTaskColor = (task) => {
   return taskColors[task];
 };
 
-const TaskAssignmentTable = ({ developers, startDate, endDate,sprintAssignment }) => {
-  const workingDays = getWorkingDays(startDate, endDate);
+const evaluateHolidaysAndLeaves = (holidayLeaveData, startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
 
-  // Updated dummy task assignments for demonstration
-  /*const dummyAssignments = {
-    "Developer 1": {
-      "2025-04-07": ["Task 1", "Task 2"],
-      "2025-04-08": ["Task 1", "Task 3"],
-    },
-    "Developer 2": {
-      "2025-04-07": ["Task 4"],
-      "2025-04-08": ["Task 5", "Task 6"],
-    },
-    "Developer 3": {
-      "2025-04-07": ["Task 7"],
-      "2025-04-09": ["Task 8", "Task 9"],
-    },
-  };*/
+  const publicHolidays = holidayLeaveData.holidays.filter(holiday => {
+      const holidayDate = new Date(holiday.date);
+      return holidayDate >= start && holidayDate <= end;
+  }).length;
+
+  const totalLeaves = holidayLeaveData.leaves.filter(leave => {
+      const leaveDate = new Date(leave.date);
+      return leaveDate >= start && leaveDate <= end;
+  }).length;
+
+  return { publicHolidays, totalLeaves };
+};
+
+const TaskAssignmentTable = ({ developers, startDate, endDate, sprintAssignment }) => {
+  const workingDays = getWorkingDays(startDate, endDate);
+  console.log("Working Days:", workingDays);
+
+  const [holidayLeaveData, setHolidayLeaveData] = React.useState({});
+
+  React.useEffect(() => {
+    const fetchHolidayLeaveData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/holidays-leaves");
+        console.log("Holiday and leave data fetched:", response.data);
+        setHolidayLeaveData(response.data);
+      } catch (error) {
+        console.error("Error fetching holiday and leave data:", error);
+      }
+    };
+
+    fetchHolidayLeaveData();
+  }, []);
 
   const dummyAssignments = React.useMemo(() => {
     const assignments = {};
-    console.log("Sprint Assignment:", sprintAssignment);
+
+    // Assign holidays and leaves
+    Object.entries(holidayLeaveData).forEach(([date, dataArray]) => {
+      console.log("Processing holiday/leave date:", date);
+      console.log("Processing holiday/leave data:", dataArray);
+      dataArray.forEach((data) => {
+      developers.forEach((developer) => {
+        
+        if (!assignments[developer.name]) {
+          assignments[developer.name] = {};
+        }
+        if (!assignments[developer.name][data.date]) {
+          assignments[developer.name][data.date] = [];
+        }
+
+        if (date === "holidays") {
+          assignments[developer.name][data.date].push({
+            task: data.holidayName,
+            points: "na",
+            color: "bg-blue-400",
+          });
+        } else if (date === "leaves" && data.developer === developer.name) {
+          assignments[developer.name][data.date].push({
+            task: "Leave",
+            points: "na",
+            color: "bg-red-400",
+          });
+        }
+      });
+    });
+    });
+
+    console.log("Dummy Assignments before recalculation:", assignments);
+
+    console.log("Recalculating TaskAssignmentTable with sprintAssignment:", sprintAssignment);
     Object.entries(sprintAssignment || {}).forEach(([developer, data]) => {
-      if (data.schedule) {
-        Object.entries(data.schedule).forEach(([date, tasks]) => {
+      if (data) {
+        Object.entries(data).forEach(([date, tasks]) => {
           tasks.forEach((taskEntry) => {
             if (!assignments[developer]) {
               assignments[developer] = {};
@@ -117,16 +173,16 @@ const TaskAssignmentTable = ({ developers, startDate, endDate,sprintAssignment }
             }
             assignments[developer][date].push({
               task: taskEntry.task,
-              points: taskEntry.points
+              points: taskEntry.points,
             });
           });
         });
       }
     });
     return assignments;
-  }, [sprintAssignment]);
+  }, [sprintAssignment, holidayLeaveData]);
 
-  console.log("Dummy Assignments:", dummyAssignments);
+  console.log("Dummy Assignments after recalculation:", dummyAssignments);
 
   const renderTaskBlocks = (developerName, day, task) => {
     const isContinuation = workingDays.some((prevDay) => {
@@ -138,11 +194,11 @@ const TaskAssignmentTable = ({ developers, startDate, endDate,sprintAssignment }
 
     return (
       <div
-        className={`${getTaskColor(task.task)} text-black p-1 rounded text-center whitespace-nowrap ${isContinuation ? "rounded-l-none" : ""}`}
-        title={`Task: ${task.task}\nPoints: ${task.points}\nDeveloper: ${developerName}`}
+        className={`${task.color || getTaskColor(task.task)} text-black p-1 rounded text-center whitespace-nowrap ${isContinuation ? "rounded-l-none" : ""}`}
+        title={`Task: ${task.task}\n${task.points !== 'na' ? `Points: ${task.points}\n` : ''}Developer: ${developerName}`}
       >
         <div>{truncatedTask}</div>
-        <div className="text-xs">{task.points} pts</div>
+        {task.points !== 'na' && <div className="text-xs">{task.points} pts</div>}
       </div>
     );
   };
@@ -188,7 +244,158 @@ const TaskAssignmentTable = ({ developers, startDate, endDate,sprintAssignment }
   );
 };
 
-const SprintPlanningDashboard = () => {
+const LeaveCalendar = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [leaveData, setLeaveData] = useState([
+    { developer: "Alice", date: "2025-04-27", type: "Leave" },
+    { developer: "Bob", date: "2025-04-28", type: "Public Holiday" },
+    { developer: "Charlie", date: "2025-04-30", type: "Leave" },
+    { developer: "Charlie", date: "2025-04-10", type: "Leave" },
+    { developer: "Bob", date: "2025-04-10", type: "Leave" },
+  ]);
+
+  const handleAddLeave = (developer, date, type) => {
+    setLeaveData([...leaveData, { developer, date, type }]);
+  };
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentMonth);
+    const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+    const rows = [];
+    let cells = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      cells.push(<td key={`empty-${i}`} className="bg-gray-100">&nbsp;</td>);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const formattedDate = format(date, "yyyy-MM-dd");
+      const leaveInfo = leaveData.filter((entry) => entry.date === formattedDate);
+
+      cells.push(
+        <td key={day} className="border p-2 align-top">
+          <div className="font-bold">{day}</div>
+          {leaveInfo.map((info, index) => (
+            <div
+              key={index}
+              className={`mt-1 px-2 py-1 rounded text-white text-xs ${
+                info.type === "Leave" ? "bg-red-500" : "bg-blue-500"
+              }`}
+            >
+              {info.type === "Leave" ? `${info.developer} on Leave` : info.type}
+            </div>
+          ))}
+        </td>
+      );
+
+      if ((day + firstDay) % 7 === 0 || day === daysInMonth) {
+        rows.push(<tr key={`row-${day}`}>{cells}</tr>);
+        cells = [];
+      }
+    }
+
+    return rows;
+  };
+
+  return (
+    <div className="p-6 bg-white shadow-lg rounded-lg border border-gray-200 w-full">
+      <h3 className="text-2xl font-bold mb-6 text-center text-secondary">Leave & Public Holiday Calendar</h3>
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={() => setCurrentMonth(addDays(currentMonth, -30))}
+          className="px-4 py-2 bg-gray-200 rounded"
+        >
+          Previous
+        </button>
+        <span className="font-bold">
+          {format(currentMonth, "MMMM yyyy")}
+        </span>
+        <button
+          onClick={() => setCurrentMonth(addDays(currentMonth, 30))}
+          className="px-4 py-2 bg-gray-200 rounded"
+        >
+          Next
+        </button>
+      </div>
+      <table className="w-full border-collapse border border-gray-300 table-fixed">
+        <thead>
+          <tr>
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <th key={day} className="border p-2 bg-gray-100 w-1/7">
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{renderCalendar()}</tbody>
+      </table>
+      <div className="mt-6">
+        <h4 className="text-lg font-bold mb-2">Add Leave/Public Holiday</h4>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const developer = formData.get("developer");
+            const date = formData.get("date");
+            const type = formData.get("type");
+            handleAddLeave(developer, date, type);
+          }}
+          className="flex flex-col gap-2"
+        >
+          <input
+            type="text"
+            name="developer"
+            placeholder="Developer Name"
+            className="border p-2 rounded"
+            required
+          />
+          <input
+            type="date"
+            name="date"
+            className="border p-2 rounded"
+            required
+          />
+          <select name="type" className="border p-2 rounded" required>
+            <option value="Leave">Leave</option>
+            <option value="Public Holiday">Public Holiday</option>
+          </select>
+          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+            Add
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const NavigationSidebar = () => {
+  const navigationItems = [
+    { name: "Home", link: "#" },
+    { name: "Sprint Data", link: "#" },
+  ];
+
+  return (
+    <div className="w-64 h-screen bg-[hsl(var(--accent))] text-gray-300 fixed top-0 left-0 shadow-lg">
+      <div className="p-4 text-lg font-bold glow-text border-b border-gray-700">SprintPredict1</div>
+      <ul className="mt-4">
+        {navigationItems.map((item, index) => (
+          <li key={index} className="p-4 hover:bg-gray-700 cursor-pointer transition-all duration-300">
+            <a href={item.link} className="hover:text-white">{item.name}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const SprintPlanningDashboard = ({ activePage }) => {
   const [activeTab, setActiveTab] = useState("upload");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [searchTerm, setSearchTerm] = useState("");
@@ -225,25 +432,25 @@ const SprintPlanningDashboard = () => {
   const [teamData, setTeamData] = useState([]);
 
   useEffect(() => {
-    const fetchBacklog = async () => {
+    const fetchTeamData = async () => {
       try {
         const response = await axios.get("http://localhost:8000/api/team/members");
-        console.log("Backlog data fetched:", response.data);
+        console.log("Team data fetched:", response.data);
         setTeamData(response.data.members);
       } catch (error) {
-        console.error("Error fetching backlog data:", error);
+        console.error("Error fetching team data:", error);
       }
     };
 
-    fetchBacklog();
+    fetchTeamData();
   }, []);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    toast({
+    /*toast({
       title: "Section Changed",
       description: `Moved to ${value} section`
-    });
+    });*/
   };
   const downloadDummyFile = (fileType: string) => {
     toast({
@@ -260,22 +467,25 @@ const SprintPlanningDashboard = () => {
     }
   };
   const [sprintAssignment, setSprintAssignment] = useState([]);
+  const [totalStoryPoint, setTotalStoryPoint] = useState([]);
+  const [totalTasks, setTotalTasks] = useState([]);
+  const [riskCategory, setRiskCategory] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const generatePlan = async () => {
+    setIsLoading(true); // Show loader before API call
     try {
-      const response = await axios.get("http://localhost:8000/api/sprint/task-distribution");
-      console.log("Sprint assignment data:",response.data.optimization_summary.developer_utilization);
-      setSprintAssignment(response.data.optimization_summary.developer_utilization);
-      
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setActiveTab("results");
-        toast({
-          title: "Sprint Plan Generated",
-          description: "AI has generated the optimal sprint plan based on the provided data."
-        });
-      }, 4000);
+      const response = await axios.get("http://localhost:8000/api/sprint/task-distribution-new");
+      console.log("Sprint assignment data:", response.data.optimization_summary.developer_daily_schedule);
+      setSprintAssignment(response.data.optimization_summary.developer_daily_schedule);
+      setTotalTasks(response.data.optimization_summary.total_tasks_selected);
+      setTotalStoryPoint(response.data.optimization_summary.total_story_points_selected);
+      console.log("Total Story Points:", response.data.optimization_summary);
+      setRiskCategory(categorizeSprintPlan(totalStoryPoint,forecastedVelocity))
+      setActiveTab("results");
+      /*toast({
+        title: "Sprint Plan Generated",
+        description: "AI has generated the optimal sprint plan based on the provided data."
+      });*/
     } catch (error) {
       console.error("Error syncing from JIRA:", error);
       toast({
@@ -283,12 +493,11 @@ const SprintPlanningDashboard = () => {
         description: "Could not refresh Product Backlog from JIRA.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false); // Hide loader after API call completes
     }
+};
 
-
-
-    
-  };
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "3":
@@ -349,832 +558,898 @@ const SprintPlanningDashboard = () => {
     }
   };
 
+  const handleMenuClick = (menu) => {
+    setActiveTab(menu);
+  };
+
+  const handleApprovePlan = async () => {
+    setIsLoading(true); // Show loader
+  
+    
+    const sanitizedSprintName = currentSprintName.replace(/^Sprint \s*/, "");
+    const requestBody = {
+      sprint_number: sanitizedSprintName,
+      start_date: currentSprintStart,
+      end_date: currentSprintEnd,
+      team_size: 5,
+      committed_story_points: totalStoryPoint,
+      completed_story_points: 0, 
+      planned_leave_days_team: 2, 
+      unplanned_leave_days_team: 1, 
+      major_impediment: 0,
+      backlog_well_refined_percentage: 72, 
+      sprint_duration_days: 14, // Assuming 14 days
+      available_person_days: 10,
+      lagged_velocity: 250, // Placeholder value
+      status: "In Progress",
+    };
+
+    console.log("Request Body for Approval:", requestBody);
+  
+    try {
+      await axios.post("http://localhost:8000/api/sprint/history", requestBody);
+      toast({
+        title: "Plan Approved",
+        description: "Sprint plan has been successfully approved and saved to history.",
+      });
+  
+      setTimeout(() => {
+        setActivePage("sprint-history"); // Switch to Sprint History page
+      }, 1000);
+    } catch (error) {
+      console.error("Error approving plan:", error);
+      toast({
+        title: "Approval Failed",
+        description: "Could not approve the sprint plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false); // Hide loader
+    }
+  };
+
+  const setActivePage = (page: string) => {
+    if (page === "sprint-history") {
+      window.location.href = "http://localhost:8080/sprint-history";
+    }
+  };
+
+  const [previousSprintName, setPreviousSprintName] = useState("");
+  const [currentSprintName, setCurrentSprintName] = useState("");
+  const [currentSprintStart, setCurrentSprintStart] = useState("");
+  const [currentSprintEnd, setCurrentSprintEnd] = useState("");
+  const [sprintHistoryList, setSprintHistoryList]=useState([]);
+
+  useEffect(() => {
+    const fetchPreviousSprint = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/sprint/history");
+        //const sortedSprints = response.data.sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+        const sortedSprints = response.data.history.sort((a, b) => b.sprint_number - a.sprint_number); // Sort in descending order
+        console.log("Previous sprint data fetched:", sortedSprints);
+        if (sortedSprints.length > 0) {
+          setPreviousSprintName("Sprint "+sortedSprints[0].sprint_number);
+          setCurrentSprintName("Sprint "+(sortedSprints[0].sprint_number+1));
+          setCurrentSprintStart(addDays(new Date(sortedSprints[0].end_date), 1).toISOString().split('T')[0]);
+          setCurrentSprintEnd(addDays(new Date(sortedSprints[0].end_date), 14).toISOString().split('T')[0]);
+          setSprintHistoryList(sortedSprints);
+          
+          
+          console.log("Current Sprint Start Date:", sortedSprints[0].end_date);
+        }
+      } catch (error) {
+        console.error("Error fetching previous sprint data:", error);
+      }
+    };
+
+    fetchPreviousSprint();
+  }, []);
+
+  const formatDateForInput = (dateString) => {
+    // Assuming the input dateString is already in the format 'YYYY-MM-DD'
+    return dateString;
+  };
+
+  const formattedSprintStartDate = formatDateForInput(currentSprintStart);
+
+  const calculateEndDate = (startDate, duration) => {
+    const endDate = new Date(startDate);
+    console.log("Start Date:", startDate);
+    endDate.setDate(endDate.getDate() + duration);
+    console.log("End Date:", endDate);
+    return endDate;
+  };
+
+  // Ensure currentSprintStart is parsed correctly as a Date object
+const [highlightedRange, setHighlightedRange] = useState<{ from?: Date; to?: Date }>(() => {
+  
+  const startDate = new Date();
+  if (isNaN(startDate.getTime())) {
+    console.error("Invalid date format for currentSprintStart. Expected format: YYYY-MM-DD");
+    return { from: undefined, to: undefined };
+  }
+  console.log("Current Sprint Start Date111:", startDate);
+  console.log("Highlighted Range1:", { from: startDate, to: calculateEndDate(startDate, 14)});
+  return { from: startDate, to: calculateEndDate(startDate, 14) };
+  
+});
+
+useEffect(() => {
+  //if (currentSprintStartDate) {
+    const startDate = new Date();
+    console.log("Current Sprint Start Date333:", startDate);
+    setHighlightedRange({ from: startDate, to: calculateEndDate(startDate, 14) });
+    console.log("Highlighted Range:", { from: startDate, to: calculateEndDate(startDate, 14) });
+  
+}, [currentSprintStart]);
+
+  const handleDateChange = (selectedDate, duration = 14) => {
+    setDate(selectedDate);
+    const newEndDate = calculateEndDate(selectedDate, duration); // Use the provided duration value 
+    setHighlightedRange({ from: selectedDate, to: newEndDate });
+};
+
+const handleSprintDurationChange = (e) => {
+    const newDuration = parseInt(e.target.value, 10) || 14; // Default to 14 if input is invalid
+    handleDateChange(date, newDuration);
+};
+
+const [forecastedVelocity, setForecastedVelocity] = useState("");
+
+useEffect(() => {
+  const fetchForecastedVelocity = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/sprint/velocity-chart");
+      const forecastedData = JSON.parse(response.data.forecasted_velocity);
+      const currentDate = new Date();
+
+      // Find the closest forecasted velocity to the current date or a future date
+      const closestForecast = forecastedData
+        .filter(item => new Date(item.start_date) >= currentDate)
+        .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))[0];
+
+      if (closestForecast) {
+        console.log("Forecasted Velocity:", closestForecast);
+        setForecastedVelocity(Math.ceil(closestForecast.velocity));
+      }
+    } catch (error) {
+      console.error("Error fetching forecasted velocity:", error);
+    }
+  };
+
+  fetchForecastedVelocity();
+}, []);
+
+function categorizeSprintPlan(forecastedVelocity, totalStoryPoints) {
+  forecastedVelocity = Math.ceil(forecastedVelocity); // Convert forecastedVelocity to an integer
+  const differencePercentage = ((totalStoryPoints - forecastedVelocity) / forecastedVelocity) * 100;
+
+  if (differencePercentage >= 20) {
+    return "Overcommitted / High Risk";
+  } else if (differencePercentage > 5 && differencePercentage < 20) {
+    return "Ambitious / Stretch";
+  } else if (differencePercentage >= -5 && differencePercentage <= 5) {
+    return "Realistic / On Track";
+  } else if (differencePercentage < -5 && differencePercentage > -20) {
+    return "Conservative / Under-planned";
+  } else if (differencePercentage <= -20) {
+    return "Significantly Under-planned";
+  }
+}
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-background">
-      {isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="flex flex-col items-center">
-            <svg
-              className="animate-spin h-8 w-8 text-white mb-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.879 4.63 2.343 6.343l1.657-1.052z"
-              ></path>
-            </svg>
-            <div className="text-white text-lg font-bold">Generating Sprint Plan...</div>
-          </div>
-        </div>
-      )}
-      <header className="bg-gradient-to-r from-primary to-accent p-6 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/10 animate-pulse"></div>
-        <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl"></div>
-        <div className="container mx-auto relative z-10">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold mb-0 flex items-center">
-              <Award className="mr-2" /> SprintPredict
-            </h1>
-            <div className="flex items-center space-x-3">
-              
-              
+      {/* Main content */}
+      <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-background">
+        <header className="bg-gradient-to-r from-primary to-accent p-1 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-white/10 animate-pulse"></div>
+          <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl"></div>
+          <div className="container mx-auto relative z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold mb-0 flex items-center">
+                <Award className="mr-2" /> SprintPredict
+              </h1>
+              <div className="flex items-center space-x-3">
+                
+              </div>
             </div>
-          </div>
-          <p className="text-white/80 max-w-xl">AI-Driven Sprint Planning & Prioritization System that optimizes team workload and maximizes delivery efficiency</p>
-          
-          {/* <div className="flex flex-wrap gap-3 mt-4">
-            <Badge className="bg-white/20 hover:bg-white/30 transition-colors">AI-Powered</Badge>
-            <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Machine Learning</Badge>
-            <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Team Optimization</Badge>
-            <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Resource Planning</Badge>
-          </div> */}
-        </div>
-      </header>
-
-      <main className="container mx-auto py-8 px-4">
-        <div className="mb-8 flex flex-col md:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold gradient-text">Sprint Planning Dashboard</h2>
-            <p className="text-muted-foreground">Plan, prioritize, and predict your sprint outcomes</p>
+            <p className="text-white/80 max-w-xl">Plan, prioritize, and predict your sprint outcomes</p>
+            
+            {/* <div className="flex flex-wrap gap-3 mt-4">
+              <Badge className="bg-white/20 hover:bg-white/30 transition-colors">AI-Powered</Badge>
+              <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Machine Learning</Badge>
+              <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Team Optimization</Badge>
+              <Badge className="bg-white/20 hover:bg-white/30 transition-colors">Resource Planning</Badge>
+            </div> */}
           </div>
           
-          <div className="flex items-center mt-4 md:mt-0 space-x-2 bg-card p-3 rounded-lg shadow-lg border border-primary/20">
-            <CalendarIcon className="text-primary" size={20} />
-            <span>Today: {new Date().toLocaleDateString()}</span>
-            <Badge className="ml-2 bg-gradient-to-r from-accent to-primary">{getCurrentSprint().name}</Badge>
-          </div>
-        </div>
+        </header>
 
-        <div className="mb-6">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Label>Current Sprint:</Label>
-            <div className="flex flex-wrap gap-2">
-              {sprints.map(sprint => <Button key={sprint.id} variant={currentSprintId === sprint.id ? "default" : "outline"} onClick={() => setCurrentSprintId(sprint.id)} className="h-8">
-                  {sprint.name}
-                </Button>)}
-              <Button variant="outline" className="border-dashed h-8" onClick={createNewSprint}>
-                + New Sprint
-              </Button>
-            </div>
-          </div>
-        </div>
+        <div className="flex w-full">
+          {/* Left Navigation Bar */}
+          <nav className="w-1/6 bg-card p-4 rounded-lg shadow-lg">
+            <ul className="space-y-4">
+              <li>
+                <Link to="/" className="w-full text-left p-2 rounded-lg hover:bg-primary/10">Dashboard</Link>
+              </li>
+              <li>
+                <Link to="/team-data" className="w-full text-left p-2 rounded-lg hover:bg-primary/10">Team Data</Link>
+              </li>
+              <li>
+                <Link to="/product-backlog" className="w-full text-left p-2 rounded-lg hover:bg-primary/10">Product Backlog</Link>
+              </li>
+              <li>
+                <Link to="/sprint-history" className="w-full text-left p-2 rounded-lg hover:bg-primary/10">Sprint History</Link>
+              </li>
+              <li>
+                <Link to="/new-sprint" className="w-full text-left p-2 rounded-lg hover:bg-primary/10">New Sprint Plan</Link>
+              </li>
+            </ul>
+          </nav>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid grid-cols-5 mb-8 bg-card p-1 rounded-xl shadow-md">
-            <TabsTrigger value="upload" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <Upload size={18} /> Sprint Details
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <Users size={18} /> Team Data
-            </TabsTrigger>
-            <TabsTrigger value="backlog" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <FileText size={18} /> Product Backlog
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <History size={18} /> Sprint History
-            </TabsTrigger>
-            <TabsTrigger value="results" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
-              <Activity size={18} /> Results
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upload">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
-
-              <Card className="md:col-span-2 border-t-4 border-t-secondary shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="bg-gradient-to-r from-secondary/10 to-transparent">
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="mr-2 text-secondary" /> Sprint Configuration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="sprint-name" className="flex items-center">
-                      <Award className="h-4 w-4 mr-2 text-secondary" /> Sprint Name
-                    </Label>
-                    <Input id="sprint-name" defaultValue="Sprint 7" className="border-secondary/20 focus:border-secondary" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sprint-goal" className="flex items-center">
-                      <CheckCircle2 className="h-4 w-4 mr-2 text-primary" /> Sprint Goal
-                    </Label>
-                    <Input id="sprint-goal" defaultValue="Complete user authentication and profile features" className="border-primary/20 focus:border-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 mr-2 text-accent" /> Sprint Start Date
-                    </Label>
-                    <div className="border rounded-md p-2 bg-card">
-                      <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md" />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="sprint-duration" className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-accent" /> Sprint Duration (days)
-                      </Label>
-                      <Input id="sprint-duration" type="number" defaultValue="14" className="border-accent/20 focus:border-accent" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="planning-threshold" className="flex items-center">
-                        <AlertTriangle className="h-4 w-4 mr-2 text-orange-500" /> Planning Threshold (%)
-                      </Label>
-                      <Input id="planning-threshold" type="number" defaultValue="70" className="border-orange-500/20 focus:border-orange-500" />
-                      <div className="w-full bg-muted rounded-full h-2 mt-2">
-                        <div className="bg-gradient-to-r from-primary to-accent h-2 rounded-full" style={{
-                        width: '70%'
-                      }}></div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended threshold: 65-75% of team capacity to allow for unforeseen tasks
-                      </p>
-                    </div>
-                    <Button className="mt-4 w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 pulse-primary" onClick={generatePlan}>
-                      Generate Sprint Plan <ChevronRight className="ml-1" size={16} />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="md:col-span-2 border-t-4 border-t-blue-500 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent">
-                  <CardTitle className="flex items-center">
-                    <LineChart className="mr-2 text-blue-500" /> Data Preview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-lg border bg-card p-3">
-                      <h3 className="font-medium flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-primary" /> Product Backlog
-                      </h3>
-                      <div className="mt-2 space-y-1">
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Total Items</span>
-                          <Badge variant="outline">{dummyBacklog.length}</Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>High Priority</span>
-                          <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === 1).length}</Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Total Points</span>
-                          <Badge variant="outline">{dummyBacklog.reduce((sum, task) => sum + task.points, 0)}</Badge>
-                        </div>
-                      </div>
-                    </div>
+          {/* Main Content Area */}
+          <main className="w-4/5 py-8 px-4">
+          
+          {(() => {
+              switch (activePage) {
+                case "team-data":
+                  return <TeamData teamData={teamData} />;
+                case "product-backlog":
+                  return <ProductBacklog dummyBacklog={dummyBacklog} />;
+                case "sprint-history":
+                  return <SprintHistory teamData={teamData}  />;
+                case "dashboard":
+                    return <VelocityChart chartData={teamData}  />;
+                default:
+                  return (
+              <>
+                <div className="mb-8 flex flex-col md:flex-row items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold gradient-text">Sprint Planning Dashboard</h2>
                     
-                    <div className="rounded-lg border bg-card p-3">
-                      <h3 className="font-medium flex items-center">
-                        <History className="h-4 w-4 mr-2 text-accent" /> Sprint History
-                      </h3>
-                      <div className="mt-2 space-y-1">
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Completed Sprints</span>
-                          <Badge variant="outline">{sprintHistory.length}</Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Avg. Velocity</span>
-                          <Badge className="bg-accent">
-                            {Math.round(sprintHistory.reduce((sum, sprint) => sum + sprint.velocity, 0) / sprintHistory.length)}
-                          </Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Completion Rate</span>
-                          <Badge variant="outline" className="bg-green-500/10 text-green-700">
-                            {Math.round(sprintHistory.reduce((sum, s) => sum + s.completedPoints, 0) / sprintHistory.reduce((sum, s) => sum + s.plannedPoints, 0) * 100)}%
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="rounded-lg border bg-card p-3">
-                      <h3 className="font-medium flex items-center">
-                        <Users className="h-4 w-4 mr-2 text-secondary" /> Team Data
-                      </h3>
-                      <div className="mt-2 space-y-1">
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Team Members</span>
-                          <Badge variant="outline">{teamData.length}</Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Total Capacity</span>
-                          <Badge className="bg-secondary">{teamData.reduce((sum, member) => sum + member.capacity, 0)}</Badge>
-                        </div>
-                        <div className="text-sm flex justify-between items-center">
-                          <span>Avg. Capacity</span>
-                          <Badge variant="outline">
-                            {Math.round(teamData.reduce((sum, member) => sum + member.capacity, 0) / teamData.length)}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="team">
-            <Card className="border-t-4 border-primary shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="flex items-center">
-                  <Users className="mr-2 text-primary" /> Team Data
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="text-xs h-8">
-                    <Download className="h-4 w-4 mr-1" /> Export
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs h-8">
-                    <Filter className="h-4 w-4 mr-1" /> Filter
-                  </Button>
+                  
+                  <div className="flex items-center mt-4 md:mt-0 space-x-2 bg-card p-3 rounded-lg shadow-lg border border-primary/20">
+                    <CalendarIcon className="text-primary" size={20} />
+                    <span>Today: {new Date().toLocaleDateString()}</span>
+                    
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-                  {teamData.map(member => <Card key={member.name} className="shadow-md hover:shadow-lg transition-shadow border-l-4 border-l-accent relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-lg flex justify-between items-center">
-                          <span>{member.name}</span>
-                          <Badge variant="outline" className="text-xs">{member.capacity} pts</Badge>
+
+                
+
+
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                  <TabsList className="grid grid-cols-5 mb-8 bg-card p-1 rounded-xl shadow-md">
+                    <TabsTrigger value="upload" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
+                      <Award size={18} /> New Sprint
+                    </TabsTrigger>
+                   
+                    
+                    <TabsTrigger value="results" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
+                      <Activity size={18} /> Results
+                    </TabsTrigger>
+                    <TabsTrigger value="insights" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg">
+                      <TrendingUp size={18} /> Insights
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="upload">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+                      
+
+                      <Card className="md:col-span-1 border-t-4 border-t-secondary shadow-lg hover:shadow-xl transition-shadow">
+                        
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="sprint-name" className="flex items-center">
+                              <Award className="h-4 w-4 mr-2 text-secondary" /> Sprint Name
+                            </Label>
+                            <Input id="sprint-name" defaultValue={currentSprintName} className="border-secondary/20 focus:border-secondary" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="sprint-start-date" className="flex items-center">
+                              <CalendarIcon className="h-4 w-4 mr-2 text-accent" /> Sprint Start Date
+                            </Label>
+                            <Input id="sprint-start-date" type="date" defaultValue={formattedSprintStartDate} className="border-accent/20 focus:border-accent" />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="flex items-center">
+                              <CalendarIcon className="h-4 w-4 mr-2 text-accent" /> Sprint Calendar
+                            </Label>
+                            <div className="border rounded-md p-2 bg-card">
+                              <Calendar
+                                mode="range"
+                                selected={highlightedRange}
+                                onSelect={(range) => {
+                                  if (range?.start) handleDateChange(range.start);
+                                }}
+                                className="rounded-md"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="sprint-duration" className="flex items-center">
+                                <Clock className="h-4 w-4 mr-2 text-accent" /> Sprint Duration (days)
+                              </Label>
+                              <Input id="sprint-duration" type="number" defaultValue="14" className="border-accent/20 focus:border-accent" onChange={handleSprintDurationChange} />
+                            </div>
+                            
+                            <Button className="mt-4 w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 pulse-primary" onClick={generatePlan}>
+                              Generate Sprint Plan <ChevronRight className="ml-1" size={16} />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="md:col-span-1 border-t-4 border-t-blue-500 shadow-lg">
+                        
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                            <div className="rounded-lg border bg-card p-3">
+                              <h3 className="font-medium flex items-center">
+                                <FileText className="h-4 w-4 mr-2 text-primary" /> Product Backlog
+                              </h3>
+                              <div className="mt-2 space-y-1">
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Total Items</span>
+                                  <Badge variant="outline">{dummyBacklog.length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>High Priority</span>
+                                  <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === 3).length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Medium Priority</span>
+                                  <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === 2).length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Low Priority</span>
+                                  <Badge className="bg-orange-500">{dummyBacklog.filter(task => task.priority === 1).length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Total Points</span>
+                                  <Badge variant="outline">{dummyBacklog.reduce((sum, task) => sum + task.story_points, 0)}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="rounded-lg border bg-card p-3">
+                              <h3 className="font-medium flex items-center">
+                                <History className="h-4 w-4 mr-2 text-accent" /> Sprint History
+                              </h3>
+                              <div className="mt-2 space-y-1">
+                              <div className="text-sm flex justify-between items-center">
+                                  <span>Previous Sprint</span>
+                                  <Badge className="bg-accent">
+                                    {previousSprintName}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Completed Sprints</span>
+                                  <Badge variant="outline">{sprintHistoryList.length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Avg. Velocity</span>
+                                  <Badge className="bg-accent">
+                                    {Math.round(sprintHistoryList.reduce((sum, sprint) => sum + sprint.lagged_velocity, 0) / sprintHistoryList.length)}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Completion Rate</span>
+                                  <Badge variant="outline" className="bg-green-500/10 text-green-700">
+                                    {Math.round(sprintHistoryList.reduce((sum, s) => sum + s.completed_story_points, 0) / sprintHistoryList.reduce((sum, s) => sum + s.committed_story_points, 0) * 100)}%
+                                  </Badge>
+                                </div>
+                                
+                              </div>
+                            </div>
+                            
+                            <div className="rounded-lg border bg-card p-3">
+                              <h3 className="font-medium flex items-center">
+                                <Users className="h-4 w-4 mr-2 text-secondary" /> Team Data
+                              </h3>
+                              <div className="mt-2 space-y-1">
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Team Members</span>
+                                  <Badge variant="outline">{teamData.length}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Total Capacity</span>
+                                  <Badge className="bg-secondary">{teamData.reduce((sum, member) => sum + member.capacity, 0)}</Badge>
+                                </div>
+                                <div className="text-sm flex justify-between items-center">
+                                  <span>Avg. Capacity</span>
+                                  <Badge variant="outline">
+                                    {Math.round(teamData.reduce((sum, member) => sum + member.capacity, 0) / teamData.length)}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="backlog">
+                    <Card className="border-t-4 border-t-accent shadow-lg">
+                      <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <CardTitle className="flex items-center">
+                          <FileText className="mr-2 text-accent" /> Product Backlog
                         </CardTitle>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                          <div className="relative flex-1 sm:w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="Search backlog..." className="pl-8" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" className="text-xs h-9">
+                              <Filter className="h-4 w-4 mr-1" /> Filter
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-xs h-9">
+                              <Download className="h-4 w-4 mr-1" /> Export
+                            </Button>
+                            <Button variant="default" size="sm" className="text-xs h-9" onClick={handleSyncFromJIRA}>
+                              Sync from JIRA
+                            </Button>
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <p className="text-sm text-muted-foreground">{member.role}</p>
-                        <div className="mt-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span>Capacity</span>
-                            <span className="font-medium">{member.capacity} pts</span>
-                          </div>
-                          <Progress value={member.capacity / 20 * 100} className="h-2 mt-1" />
+                      <CardContent>
+                        <div className="rounded-lg border">
+                          <Table>
+                            <TableCaption>Available items in product backlog • {filteredBacklog.length} items • {filteredBacklog.reduce((sum, task) => sum + task.points, 0)} total points</TableCaption>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>ID</TableHead>
+                                <TableHead>Summary</TableHead>
+                                <TableHead>Priority</TableHead>
+                                <TableHead>Points</TableHead>
+                                <TableHead>Required Skills</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead></TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredBacklog.map(task => <React.Fragment key={task.issue_key}>
+                                  <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={() => setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key)}>
+                                    <TableCell className="font-medium">{task.issue_key}</TableCell>
+                                    <TableCell className="max-w-xs">
+                                      <div className="truncate">{task.summary}</div>
+                                    </TableCell>
+                                    <TableCell>{getPriorityBadge(task.priority)}</TableCell>
+                                    <TableCell>
+                                      <Badge variant="outline" className="bg-secondary/10">
+                                        {task.points} pts
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex flex-wrap gap-1">
+                                        {task.skills.split(", ").map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10 text-primary">
+                                            {skill}
+                                          </Badge>)}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge className={`
+                                        ${task.status === "To Do" ? "bg-muted text-muted-foreground" : ""}
+                                        ${task.status === "In Progress" ? "bg-blue-500" : ""}
+                                        ${task.status === "Done" ? "bg-green-500" : ""}
+                                      `}>
+                                        {task.status}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Button variant="ghost" size="icon" onClick={e => {
+                                    e.stopPropagation();
+                                    setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key);
+                                  }}>
+                                        {expandedTask === task.issue_key ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                  {expandedTask === task.issue_key && <TableRow className="bg-muted/30 hover:bg-muted/50">
+                                      <TableCell colSpan={7} className="p-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div>
+                                            <h4 className="font-medium mb-2">Description</h4>
+                                            <p className="text-sm text-muted-foreground">{task.description}</p>
+                                            
+                                            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                                              <div>
+                                                <span className="text-muted-foreground">Type:</span>
+                                                <Badge className="ml-2 bg-purple-500/80">{task.type}</Badge>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Created:</span>
+                                                <span className="ml-2">{task.created}</span>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Assigned:</span>
+                                                <span className="ml-2">{task.assigned}</span>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Status:</span>
+                                                <Badge className={`ml-2
+                                                  ${task.status === "To Do" ? "bg-muted text-muted-foreground" : ""}
+                                                  ${task.status === "In Progress" ? "bg-blue-500" : ""}
+                                                  ${task.status === "Done" ? "bg-green-500" : ""}
+                                                `}>
+                                                  {task.status}
+                                                </Badge>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          
+                                          <div className="bg-card p-3 rounded-lg border">
+                                            <h4 className="font-medium mb-2 flex items-center">
+                                              <TrendingUp className="h-4 w-4 mr-2 text-primary" /> AI Analysis
+                                            </h4>
+                                            <div className="space-y-3 text-sm">
+                                              <div>
+                                                <span className="text-muted-foreground">Estimated Completion:</span>
+                                                <span className="ml-2 font-medium">{task.points / 3} days</span>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Best Team Member Match:</span>
+                                                <Badge className="ml-2 bg-accent">{task.assigned}</Badge>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Confidence:</span>
+                                                <div className="w-full bg-muted rounded-full h-2 mt-1">
+                                                  <div className="bg-gradient-to-r from-primary to-accent h-2 rounded-full" style={{
+                                              width: `${85 - Number(task.issue_key.slice(-1)) * 5}%`
+                                            }}></div>
+                                                </div>
+                                              </div>
+                                              <div>
+                                                <span className="text-muted-foreground">Dependencies:</span>
+                                                <div className="flex gap-1 mt-1">
+                                                  {task.issue_key !== "TSK-001" && <Badge variant="outline" className="text-xs">TSK-00{Number(task.issue_key.split("-")[1]) - 1}</Badge>}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>}
+                                </React.Fragment>)}
+                            </TableBody>
+                          </Table>
                         </div>
-                        <div className="mt-3">
-                          <p className="text-xs text-muted-foreground mb-1">Skills:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {member.skills.split(", ").map(skill => <Badge key={skill} variant="outline" className="text-xs bg-accent/10 text-accent-foreground">
-                                {skill}
-                              </Badge>)}
-                          </div>
-                        </div>
-                        <div className="mt-3 text-xs text-muted-foreground">
-                          <a href={`mailto:${member.email}`} className="hover:text-primary">{member.email}</a>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                          <Card className="border-t-4 border-t-primary">
+                            <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+                              <CardTitle className="flex items-center">
+                                <PieChartIcon className="mr-2 text-primary" /> Task Priority Distribution
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px] flex items-center justify-center">
+                              <PieChart {...extendedChartConfig.priority} />
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="border-t-4 border-t-accent">
+                            <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
+                              <CardTitle className="flex items-center">
+                                <BarChartIcon className="mr-2 text-accent" /> Story Points by Type
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px]">
+                              <BarChart {...extendedChartConfig.points} />
+                            </CardContent>
+                          </Card>
                         </div>
                       </CardContent>
-                    </Card>)}
-                </div>
+                    </Card>
+                  </TabsContent>
 
-                <div className="rounded-lg border">
-                  <Table>
-                    <TableCaption>Sprint planning team data</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Capacity (Points)</TableHead>
-                        <TableHead>Skills</TableHead>
-                        <TableHead>Email</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {teamData.map(member => <TableRow key={member.name} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">{member.name}</TableCell>
-                          <TableCell>{member.role}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="bg-secondary/10">
-                              {member.capacity} pts
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {member.skills.split(", ").slice(0, 2).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10 text-primary">
-                                  {skill}
-                                </Badge>)}
-                              {member.skills.split(", ").length > 2 && <Badge variant="outline" className="text-xs">
-                                  +{member.skills.split(", ").length - 2}
-                                </Badge>}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {member.email}
-                          </TableCell>
-                        </TableRow>)}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                <Card className="mt-8 border-t-4 border-t-secondary">
-                  <CardHeader className="bg-gradient-to-r from-secondary/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <BarChartIcon className="mr-2 text-secondary" /> Team Capacity Visualization
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-[600px]">
-                    <BarChart {...chartConfig.capacity} />
-                  </CardContent>
-                </Card>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="backlog">
-            <Card className="border-t-4 border-accent shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="flex items-center">
-                  <FileText className="mr-2 text-accent" /> Product Backlog
-                </CardTitle>
-                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search backlog..." className="pl-8" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="text-xs h-9">
-                      <Filter className="h-4 w-4 mr-1" /> Filter
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-xs h-9">
-                      <Download className="h-4 w-4 mr-1" /> Export
-                    </Button>
-                    <Button variant="default" size="sm" className="text-xs h-9" onClick={handleSyncFromJIRA}>
-                      Sync from JIRA
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border">
-                  <Table>
-                    <TableCaption>Available items in product backlog • {filteredBacklog.length} items • {filteredBacklog.reduce((sum, task) => sum + task.points, 0)} total points</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Summary</TableHead>
-                        <TableHead>Priority</TableHead>
-                        <TableHead>Points</TableHead>
-                        <TableHead>Required Skills</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredBacklog.map(task => <React.Fragment key={task.issue_key}>
-                          <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={() => setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key)}>
-                            <TableCell className="font-medium">{task.issue_key}</TableCell>
-                            <TableCell className="max-w-xs">
-                              <div className="truncate">{task.summary}</div>
-                            </TableCell>
-                            <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="bg-secondary/10">
-                                {task.points} pts
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {task.skills.split(", ").map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10 text-primary">
-                                    {skill}
-                                  </Badge>)}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={`
-                                ${task.status === "To Do" ? "bg-muted text-muted-foreground" : ""}
-                                ${task.status === "In Progress" ? "bg-blue-500" : ""}
-                                ${task.status === "Done" ? "bg-green-500" : ""}
-                              `}>
-                                {task.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" onClick={e => {
-                            e.stopPropagation();
-                            setExpandedTask(expandedTask === task.issue_key ? null : task.issue_key);
-                          }}>
-                                {expandedTask === task.issue_key ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                          {expandedTask === task.issue_key && <TableRow className="bg-muted/30 hover:bg-muted/50">
-                              <TableCell colSpan={7} className="p-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <h4 className="font-medium mb-2">Description</h4>
-                                    <p className="text-sm text-muted-foreground">{task.description}</p>
-                                    
-                                    <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                                      <div>
-                                        <span className="text-muted-foreground">Type:</span>
-                                        <Badge className="ml-2 bg-purple-500/80">{task.type}</Badge>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Created:</span>
-                                        <span className="ml-2">{task.created}</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Assigned:</span>
-                                        <span className="ml-2">{task.assigned}</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Status:</span>
-                                        <Badge className={`ml-2
-                                          ${task.status === "To Do" ? "bg-muted text-muted-foreground" : ""}
-                                          ${task.status === "In Progress" ? "bg-blue-500" : ""}
-                                          ${task.status === "Done" ? "bg-green-500" : ""}
-                                        `}>
-                                          {task.status}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="bg-card p-3 rounded-lg border">
-                                    <h4 className="font-medium mb-2 flex items-center">
-                                      <TrendingUp className="h-4 w-4 mr-2 text-primary" /> AI Analysis
-                                    </h4>
-                                    <div className="space-y-3 text-sm">
-                                      <div>
-                                        <span className="text-muted-foreground">Estimated Completion:</span>
-                                        <span className="ml-2 font-medium">{task.points / 3} days</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Best Team Member Match:</span>
-                                        <Badge className="ml-2 bg-accent">{task.assigned}</Badge>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Confidence:</span>
-                                        <div className="w-full bg-muted rounded-full h-2 mt-1">
-                                          <div className="bg-gradient-to-r from-primary to-accent h-2 rounded-full" style={{
-                                      width: `${85 - Number(task.issue_key.slice(-1)) * 5}%`
-                                    }}></div>
-                                      </div>
-                                      </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Dependencies:</span>
-                                        <div className="flex gap-1 mt-1">
-                                          {task.issue_key !== "TSK-001" && <Badge variant="outline" className="text-xs">TSK-00{Number(task.issue_key.split("-")[1]) - 1}</Badge>}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>}
-                        </React.Fragment>)}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                  <Card className="border-t-4 border-t-primary">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-                      <CardTitle className="flex items-center">
-                        <PieChartIcon className="mr-2 text-primary" /> Task Priority Distribution
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px] flex items-center justify-center">
-                      <PieChart {...extendedChartConfig.priority} />
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-t-4 border-t-accent">
-                    <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
-                      <CardTitle className="flex items-center">
-                        <BarChartIcon className="mr-2 text-accent" /> Story Points by Type
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                      <BarChart {...extendedChartConfig.points} />
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="history">
-            <Card className="border-t-4 border-t-accent shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="flex items-center">
-                  <History className="mr-2 text-accent" /> Sprint History
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="text-xs h-8">
-                    <Download className="h-4 w-4 mr-1" /> Export
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs h-8">
-                    <Filter className="h-4 w-4 mr-1" /> Filter
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center">
-                        <p className="text-primary font-medium">Avg. Velocity</p>
-                        <Badge className="bg-primary">{Math.round(sprintHistory.reduce((sum, s) => sum + s.velocity, 0) / sprintHistory.length)}</Badge>
-                      </div>
-                      <div className="mt-2">
-                        <Progress value={80} className="h-1.5" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Story points delivered per sprint
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-secondary/5 to-transparent border-secondary/20">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center">
-                        <p className="text-secondary font-medium">On-time Delivery</p>
-                        <Badge className="bg-secondary">83%</Badge>
-                      </div>
-                      <div className="mt-2">
-                        <Progress value={83} className="h-1.5" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Percent of sprints meeting commitments
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center">
-                        <p className="text-accent font-medium">Scope Change</p>
-                        <Badge className="bg-accent">15%</Badge>
-                      </div>
-                      <div className="mt-2">
-                        <Progress value={15} className="h-1.5" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Average scope change during sprints
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div className="rounded-lg border mb-8">
-                  <Table>
-                    <TableCaption>Detailed sprint history • {sprintHistory.length} sprints</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Sprint</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Planned Points</TableHead>
-                        <TableHead>Completed</TableHead>
-                        <TableHead>Team Members</TableHead>
-                        <TableHead>Completion Rate</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sprintHistory.map(sprint => <TableRow key={sprint.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">{sprint.name}</TableCell>
-                          <TableCell>{sprint.endDate ? new Date(sprint.endDate).getDate() - new Date(sprint.startDate).getDate() : 14} days</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{sprint.plannedPoints} pts</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="bg-secondary/10">{sprint.completedPoints} pts</Badge>
-                          </TableCell>
-                          <TableCell>{teamData.filter(m => m.role !== "Product Owner").length}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={getCompletionRate(sprint.completedPoints, sprint.plannedPoints)} className="h-2 w-24" />
-                              <span className="text-xs font-medium">
-                                {getCompletionRate(sprint.completedPoints, sprint.plannedPoints)}%
-                              </span>
-                            </div>
-                          </TableCell>
-                        </TableRow>)}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="border-t-4 border-t-primary">
-                    <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-                      <CardTitle className="flex items-center">
-                        <TrendingUp className="mr-2 text-primary" /> Velocity Trend
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                      <BarChart {...chartConfig.velocity} />
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-t-4 border-t-accent">
-                    <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
-                      <CardTitle className="flex items-center">
-                        <LineChart className="mr-2 text-accent" /> Burndown Chart - Last Sprint
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                      <BarChart {...chartConfig.burndown} />
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="results">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-1 space-y-6">
-              </div>
-              <div className="md:col-span-3 space-y-6">
-                <Card className="border-t-4 border-t-primary shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <Award className="mr-2 text-primary" /> Recommended Sprint Plan
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4 p-3 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
-                      <h3 className="text-lg font-medium mb-1">{getCurrentSprint().name}: {getCurrentSprint().goal}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {getCurrentSprint().startDate} - {getCurrentSprint().endDate} • {getCurrentSprint().duration} days • {getCurrentSprint().totalPoints} story points • {getCurrentSprint().teamMembers} team members
-                      </p>
-                    </div>
-
-                    <Card className="border-t-4 border-t-primary shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      Task Assignment
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <TaskAssignmentTable 
-                      developers={teamData} 
-                      startDate={getCurrentSprint().startDate} 
-                      endDate={getCurrentSprint().endDate}
-                      sprintAssignment={sprintAssignment} 
-                    />
-                  </CardContent>
-                </Card>
-                    
-                    
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
-                      <Card className="bg-muted/30">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Total Story Points</p>
-                          <p className="text-lg font-medium">{dummyBacklog.slice(0, 7).reduce((sum, task) => sum + task.points, 0)}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-muted/30">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Total Tasks</p>
-                          <p className="text-lg font-medium">{dummyBacklog.slice(0, 7).length}</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-muted/30">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Risk Level</p>
-                          <p className="text-lg font-medium text-amber-500">Medium</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-muted/30">
-                        <CardContent className="p-3">
-                          <p className="text-xs text-muted-foreground">Team Utilization</p>
-                          <p className="text-lg font-medium text-green-500">86%</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
-                      <Button variant="outline">
-                        <Download className="mr-2 h-4 w-4" /> Export Plan
-                      </Button>
-                      <Button>
-                        <Check className="mr-2 h-4 w-4" /> Approve Plan
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                
-
-                <SprintChatbot sprintName={getCurrentSprint().name} sprintData={getCurrentSprint()} />
-                
-                
-              </div>
-              
-              <div className="space-y-6">
-                <Card className="border-t-4 border-t-accent shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <Users className="mr-2 text-accent" /> Team Allocation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {teamData.slice(0, 5).map(member => <div key={member.name} className="flex flex-col space-y-1">
-                        <div className="flex justify-between items-center">
-                          <p className="font-medium">{member.name.split(" ")[0]}</p>
-                          <Badge variant="outline" className={member.capacity > 16 ? "bg-red-500/20 text-red-600" : member.capacity > 12 ? "bg-amber-500/20 text-amber-600" : "bg-green-500/20 text-green-600"}>{member.capacity} pts</Badge>
+                  <TabsContent value="history">
+                    <Card className="border-t-4 border-t-accent shadow-lg">
+                      <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <CardTitle className="flex items-center">
+                          <History className="mr-2 text-accent" /> Sprint History
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" className="text-xs h-8">
+                            <Download className="h-4 w-4 mr-1" /> Export
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-xs h-8">
+                            <Filter className="h-4 w-4 mr-1" /> Filter
+                          </Button>
                         </div>
-                        <Progress value={member.capacity / 20 * 100} className={`h-2 ${member.capacity > 16 ? "bg-red-500" : member.capacity > 12 ? "bg-amber-500" : "bg-green-500"}`} />
-                      </div>)}
-                    <div className="h-[200px] mt-6">
-                      <PieChart {...extendedChartConfig.allocation} />
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-t-4 border-t-green-500 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-green-500/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <CheckCircle2 className="mr-2 text-green-500" /> Sprint Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-                      <h4 className="font-medium flex items-center text-primary">
-                        <TrendingUp className="h-4 w-4 mr-2" /> Velocity
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Expected sprint velocity is 85 points, which is 15% higher than the team's average.
-                      </p>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
-                      <h4 className="font-medium flex items-center text-secondary">
-                        <CheckCircle2 className="h-4 w-4 mr-2" /> Completion Target
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Based on historical data, the team has an 87% chance of completing all committed tasks.
-                      </p>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
-                      <h4 className="font-medium flex items-center text-accent">
-                        <Users className="h-4 w-4 mr-2" /> Team Balance
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Workload is well-distributed among team members with skill-based task allocation.
-                      </p>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <p className="text-sm font-medium mb-2">Sprint Health</p>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="bg-gradient-to-r from-green-500 to-primary h-full" style={{
-                        width: '85%'
-                      }}></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Sprint Start</span>
-                        <span>In Progress</span>
-                        <span>Completion</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                          <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center">
+                                <p className="text-primary font-medium">Avg. Velocity</p>
+                                <Badge className="bg-primary">{Math.round(sprintHistory.reduce((sum, s) => sum + s.velocity, 0) / sprintHistory.length)}</Badge>
+                              </div>
+                              <div className="mt-2">
+                                <Progress value={80} className="h-1.5" />
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Story points delivered per sprint
+                              </p>
+                            </CardContent>
+                          </Card>
+                          <Card className="bg-gradient-to-br from-secondary/5 to-transparent border-secondary/20">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center">
+                                <p className="text-secondary font-medium">On-time Delivery</p>
+                                <Badge className="bg-secondary">83%</Badge>
+</div>
+                              <div className="mt-2">
+                                <Progress value={83} className="h-1.5" />
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Percent of sprints meeting commitments
+                              </p>
+                            </CardContent>
+                          </Card>
+                          <Card className="bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center">
+                                <p className="text-accent font-medium">Scope Change</p>
+                                <Badge className="bg-accent">15%</Badge>
+                              </div>
+                              <div className="mt-2">
+                                <Progress value={15} className="h-1.5" />
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Average scope change during sprints
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        <div className="rounded-lg border mb-8">
+                          <Table>
+                            <TableCaption>Detailed sprint history • {sprintHistory.length} sprints</TableCaption>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Sprint</TableHead>
+                                <TableHead>Duration</TableHead>
+                                <TableHead>Planned Points</TableHead>
+                                <TableHead>Completed</TableHead>
+                                <TableHead>Team Members</TableHead>
+                                <TableHead>Completion Rate</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sprintHistory.map(sprint => <TableRow key={sprint.id} className="hover:bg-muted/50">
+                                  <TableCell className="font-medium">{sprint.name}</TableCell>
+                                  <TableCell>{sprint.endDate ? new Date(sprint.endDate).getDate() - new Date(sprint.startDate).getDate() : 14} days</TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline">{sprint.plannedPoints} pts</Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="bg-secondary/10">{sprint.completedPoints} pts</Badge>
+                                  </TableCell>
+                                  <TableCell>{teamData.filter(m => m.role !== "Product Owner").length}</TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Progress value={getCompletionRate(sprint.completedPoints, sprint.plannedPoints)} className="h-2 w-24" />
+                                      <span className="text-xs font-medium">
+                                        {getCompletionRate(sprint.completedPoints, sprint.plannedPoints)}%
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>)}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <Card className="border-t-4 border-t-primary">
+                            <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+                              <CardTitle className="flex items-center">
+                                <TrendingUp className="mr-2 text-primary" /> Velocity Trend
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px]">
+                              <BarChart {...chartConfig.velocity} />
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="border-t-4 border-t-accent">
+                            <CardHeader className="bg-gradient-to-r from-accent/10 to-transparent">
+                              <CardTitle className="flex items-center">
+                                <LineChart className="mr-2 text-accent" /> Burndown Chart - Last Sprint
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px]">
+                              <BarChart {...chartConfig.burndown} />
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="results">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      
+                      <div className="md:col-span-3 space-y-6">
+                        <Card className="border-t-4 border-t-primary shadow-lg">
+                          <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+                            <CardTitle className="flex items-center">
+                              <Award className="mr-2 text-primary" /> {currentSprintName}: Task Assignment
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            
 
-                <Card className="border-t-4 border-t-blue-500 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent">
-                    <CardTitle className="flex items-center">
-                      <TrendingUp className="mr-2 text-blue-500" /> Previous Sprints Optimization
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      AI-powered insights from previous sprints to optimize current planning
-                    </p>
-                    
-                    <div className="space-y-2">
-                      {sprintHistory.slice(0, 3).map((sprint, index) => <div key={index} className="p-2 rounded-lg border bg-card">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{sprint.name}</span>
-                            <Badge variant="outline">{sprint.completedPoints}/{sprint.plannedPoints} pts</Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Optimization: {index === 0 ? "Reduce frontend tasks by 10%" : index === 1 ? "Increase testing allocation" : "Balance backend workload"}
-                          </p>
-                        </div>)}
+                            
+                        <div> 
+                        <TaskAssignmentTable 
+                          developers={teamData} 
+                          startDate={currentSprintStart} 
+                          endDate={currentSprintEnd}
+                          sprintAssignment={sprintAssignment} 
+                        />
+                        </div>
+                            
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
+                              <Card className="bg-muted/30">
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground">Total Story Points</p>
+                                  <p className="text-lg font-medium">{totalStoryPoint}</p>
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-muted/30">
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground">Total Tasks</p>
+                                  <p className="text-lg font-medium">{totalTasks}</p>
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-muted/30">
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground">Forecasted Velocity</p>
+                                  <p className="text-lg font-medium text-green-500">{forecastedVelocity}</p>
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-muted/30">
+                                <CardContent className="p-3">
+                                  <p className="text-xs text-muted-foreground">Risk Level</p>
+                                  <p className={`text-lg font-medium ${
+                                    riskCategory === "Overcommitted / High Risk" ? "text-red-500" :
+                                    riskCategory === "Ambitious / Stretch" ? "text-orange-500" :
+                                    riskCategory === "Realistic / On Track" ? "text-green-500" :
+                                    riskCategory === "Conservative / Under-planned" ? "text-orange-500" :
+                                    riskCategory === "Significantly Under-planned" ? "text-red-500" : ""
+                                  }`}>{riskCategory}</p>
+                                </CardContent>
+                              </Card>
+                              
+                            </div>
+
+                            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
+                              <Button variant="outline">
+                                <Download className="mr-2 h-4 w-4" /> Export Plan
+                              </Button>
+                              <Button onClick={handleApprovePlan}>
+                                <Check className="mr-2 h-4 w-4" /> Approve Plan
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        
+
+                        <SprintChatbot 
+  sprintName={getCurrentSprint().name} 
+  sprintData={getCurrentSprint()} 
+  setSprintAssignment={setSprintAssignment} 
+  setTotalStoryPoint={setTotalStoryPoint}
+  setTotalTasks={setTotalTasks}
+  setRiskCategory={setRiskCategory}
+  forecastedVelocity={forecastedVelocity}
+/>
+                        
+                        
+                      </div>
+                      
+                      <div className="space-y-6">
+                        
+                        
+                        
+
+                        
+                      </div>
                     </div>
-                    
-                    <Button variant="outline" size="sm" className="w-full mt-2">
-                      View All Optimizations
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
+                  </TabsContent>
+
+                  <TabsContent value="insights">
+                    <InsightsTab />
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          
+        
+      })()}
+
+      {isLoading && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="text-center">
+      <div className="loader border-t-4 border-b-4 border-primary rounded-full w-12 h-12 animate-spin"></div>
+      <p className="mt-4 text-white"></p>
+    </div>
+  </div>
+)}
+
+          </main>
+        </div>
+      </div>
     </div>
   );
 };
+
+const InsightsTab = () => {
+  const [insightsData, setInsightsData] = useState<string>("Loading insights...");
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const response = await axios.post("http://localhost:8000/api/chatSummary", {
+          message: "hi",
+        });
+
+        // Format the response data for better readability
+        const formattedData = formatInsights(response.data);
+        setInsightsData(formattedData);
+      } catch (error) {
+        console.error("Error fetching insights:", error);
+        setInsightsData("Failed to load insights. Please try again later.");
+      }
+    };
+
+    fetchInsights();
+  }, []);
+
+  const formatInsights = (data: any): string => {
+    // Assuming the response contains a summary field
+    if (data && data.response) {
+      // Remove unwanted characters and format the response
+      const cleanedResponse = data.response
+        .replace(/[#*]/g, "") // Remove # and * characters
+       // .replace(/\n{2,}/g, "\n") // Replace multiple newlines with a single newline
+        .trim();
+
+      return `${cleanedResponse}`;
+    }
+    return "No insights available.";
+  };
+
+  return (
+    <Card className="border-t-4 border-t-primary shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+        <CardTitle className="flex items-center">
+          <TrendingUp className="mr-2 text-primary" /> Sprint Insights
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="p-4 bg-muted/10 rounded-lg border border-muted/20">
+          <textarea
+            className="w-full h-96 p-4 text-base font-sans bg-white border border-muted rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            readOnly
+            value={insightsData}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default SprintPlanningDashboard;
+

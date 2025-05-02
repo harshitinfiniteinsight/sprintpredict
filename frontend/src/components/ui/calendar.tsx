@@ -11,8 +11,9 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  renderDayContent,
   ...props
-}: CalendarProps) {
+}: CalendarProps & { renderDayContent?: (date: Date) => React.ReactNode }) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -55,6 +56,11 @@ function Calendar({
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
       }}
+      modifiers={{
+        ...props.modifiers,
+        custom: (date) => !!renderDayContent?.(date),
+      }}
+      render={({ date }) => renderDayContent ? renderDayContent(date) : null}
       {...props}
     />
   );

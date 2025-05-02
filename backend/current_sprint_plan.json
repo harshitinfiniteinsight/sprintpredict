@@ -1,0 +1,702 @@
+{
+    "total_tasks_considered": 80,
+    "total_tasks_selected": 25,
+    "total_story_points_selected": 235,
+    "total_story_points_scheduled": 235,
+    "objective_value": 49.64000000000014,
+    "developer_utilization": {
+        "Alex Johnson": {
+            "total_sprint_capacity_input": 80,
+            "total_daily_sum_capacity": 64,
+            "total_points_scheduled": 29,
+            "utilization_rate_vs_daily_sum": 0.453125,
+            "tasks_assigned_by_optimizer": [
+                "SCRUM-262",
+                "SCRUM-229",
+                "SCRUM-194"
+            ]
+        },
+        "Maria Garcia": {
+            "total_sprint_capacity_input": 80,
+            "total_daily_sum_capacity": 56,
+            "total_points_scheduled": 47,
+            "utilization_rate_vs_daily_sum": 0.8392857142857143,
+            "tasks_assigned_by_optimizer": [
+                "SCRUM-242",
+                "SCRUM-216",
+                "SCRUM-206",
+                "SCRUM-201"
+            ]
+        },
+        "Chen Wei": {
+            "total_sprint_capacity_input": 80,
+            "total_daily_sum_capacity": 64,
+            "total_points_scheduled": 53,
+            "utilization_rate_vs_daily_sum": 0.828125,
+            "tasks_assigned_by_optimizer": [
+                "SCRUM-260",
+                "SCRUM-243",
+                "SCRUM-234",
+                "SCRUM-232",
+                "SCRUM-212",
+                "SCRUM-211"
+            ]
+        }
+    },
+    "sprint_working_days": [
+        "2025-05-01",
+        "2025-05-02",
+        "2025-05-05",
+        "2025-05-06",
+        "2025-05-07",
+        "2025-05-08",
+        "2025-05-09",
+        "2025-05-12",
+        "2025-05-13",
+        "2025-05-14"
+    ],
+    "developer_daily_schedule": {
+        "Alex Johnson": {
+            "2025-05-02": [],
+            "2025-05-05": [
+                {
+                    "task": "SCRUM-194",
+                    "points": 8
+                }
+            ],
+            "2025-05-06": [
+                {
+                    "task": "SCRUM-194",
+                    "points": 5
+                }
+            ],
+            "2025-05-07": [
+                {
+                    "task": "SCRUM-229",
+                    "points": 8
+                }
+            ],
+            "2025-05-08": [
+                {
+                    "task": "SCRUM-262",
+                    "points": 8
+                }
+            ],
+            "2025-05-13": []
+        },
+        "Chen Wei": {
+            "2025-05-02": [
+                {
+                    "task": "SCRUM-211",
+                    "points": 8
+                }
+            ],
+            "2025-05-05": [
+                {
+                    "task": "SCRUM-243",
+                    "points": 8
+                }
+            ],
+            "2025-05-06": [
+                {
+                    "task": "SCRUM-260",
+                    "points": 8
+                }
+            ],
+            "2025-05-07": [
+                {
+                    "task": "SCRUM-212",
+                    "points": 8
+                }
+            ],
+            "2025-05-08": [
+                {
+                    "task": "SCRUM-234",
+                    "points": 8
+                }
+            ],
+            "2025-05-09": [
+                {
+                    "task": "SCRUM-232",
+                    "points": 8
+                }
+            ],
+            "2025-05-14": [
+                {
+                    "task": "SCRUM-234",
+                    "points": 5
+                }
+            ]
+        },
+        "Maria Garcia": {
+            "2025-05-02": [
+                {
+                    "task": "SCRUM-201",
+                    "points": 8
+                }
+            ],
+            "2025-05-05": [
+                {
+                    "task": "SCRUM-242",
+                    "points": 8
+                }
+            ],
+            "2025-05-07": [
+                {
+                    "task": "SCRUM-206",
+                    "points": 8
+                }
+            ],
+            "2025-05-08": [
+                {
+                    "task": "SCRUM-206",
+                    "points": 5
+                },
+                {
+                    "task": "SCRUM-201",
+                    "points": 3
+                }
+            ],
+            "2025-05-09": [
+                {
+                    "task": "SCRUM-216",
+                    "points": 8
+                }
+            ],
+            "2025-05-13": [
+                {
+                    "task": "SCRUM-216",
+                    "points": 5
+                },
+                {
+                    "task": "SCRUM-201",
+                    "points": 2
+                }
+            ]
+        }
+    },
+    "soft_constraint_metrics": {
+        "workload_imbalance_deviation": 24,
+        "max_developer_workload": 53,
+        "min_developer_workload": 29,
+        "total_context_switches": 34,
+        "total_late_completion_penalty_points": 1106
+    },
+    "selected_tasks_with_dependency_status": {
+        "SCRUM-262": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-260": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-257": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-254": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-249": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-244": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-243": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-242": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-236": [
+            {
+                "dependency": "SCRUM-201",
+                "selected": true
+            }
+        ],
+        "SCRUM-234": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-232": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-231": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-229": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-223": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-220": [
+            {
+                "dependency": "SCRUM-210",
+                "selected": true
+            },
+            {
+                "dependency": "SCRUM-206",
+                "selected": true
+            }
+        ],
+        "SCRUM-219": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-216": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-215": [
+            {
+                "dependency": "SCRUM-216",
+                "selected": true
+            }
+        ],
+        "SCRUM-212": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-211": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-210": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-209": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-208": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-206": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-201": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ],
+        "SCRUM-194": [
+            {
+                "dependency": "",
+                "selected": false,
+                "note": "Dependency not in the list of tasks considered by the optimizer"
+            }
+        ]
+    },
+    "optimization_details": {
+        "total_tasks_considered": 80,
+        "total_tasks_selected": 25,
+        "total_story_points_selected": 235,
+        "total_story_points_scheduled": 235,
+        "objective_value": 49.64000000000014,
+        "sprint_working_days": 10,
+        "developer_utilization": {
+            "Alex Johnson": {
+                "total_sprint_capacity_input": 80,
+                "total_daily_sum_capacity": 64,
+                "total_points_scheduled": 29,
+                "utilization_rate_vs_daily_sum": 0.453125,
+                "tasks_assigned_by_optimizer": [
+                    "SCRUM-262",
+                    "SCRUM-229",
+                    "SCRUM-194"
+                ]
+            },
+            "Maria Garcia": {
+                "total_sprint_capacity_input": 80,
+                "total_daily_sum_capacity": 56,
+                "total_points_scheduled": 47,
+                "utilization_rate_vs_daily_sum": 0.8392857142857143,
+                "tasks_assigned_by_optimizer": [
+                    "SCRUM-242",
+                    "SCRUM-216",
+                    "SCRUM-206",
+                    "SCRUM-201"
+                ]
+            },
+            "Chen Wei": {
+                "total_sprint_capacity_input": 80,
+                "total_daily_sum_capacity": 64,
+                "total_points_scheduled": 53,
+                "utilization_rate_vs_daily_sum": 0.828125,
+                "tasks_assigned_by_optimizer": [
+                    "SCRUM-260",
+                    "SCRUM-243",
+                    "SCRUM-234",
+                    "SCRUM-232",
+                    "SCRUM-212",
+                    "SCRUM-211"
+                ]
+            }
+        },
+        "soft_constraint_metrics": {
+            "workload_imbalance_deviation": 24,
+            "max_developer_workload": 53,
+            "min_developer_workload": 29,
+            "total_context_switches": 34,
+            "total_late_completion_penalty_points": 1106
+        },
+        "developer_daily_schedule": {
+            "Alex Johnson": [
+                {
+                    "day": "2025-05-02",
+                    "capacity": 8,
+                    "tasks": []
+                },
+                {
+                    "day": "2025-05-05",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-194",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-06",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-194",
+                            "points": 5
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-07",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-229",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-08",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-262",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-13",
+                    "capacity": 8,
+                    "tasks": []
+                }
+            ],
+            "Chen Wei": [
+                {
+                    "day": "2025-05-02",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-211",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-05",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-243",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-06",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-260",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-07",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-212",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-08",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-234",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-09",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-232",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-14",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-234",
+                            "points": 5
+                        }
+                    ]
+                }
+            ],
+            "Maria Garcia": [
+                {
+                    "day": "2025-05-02",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-201",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-05",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-242",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-07",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-206",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-08",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-206",
+                            "points": 5
+                        },
+                        {
+                            "task": "SCRUM-201",
+                            "points": 3
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-09",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-216",
+                            "points": 8
+                        }
+                    ]
+                },
+                {
+                    "day": "2025-05-13",
+                    "capacity": 8,
+                    "tasks": [
+                        {
+                            "task": "SCRUM-216",
+                            "points": 5
+                        },
+                        {
+                            "task": "SCRUM-201",
+                            "points": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "detailed_assignment_results": {
+        "selected_tasks": [
+            {
+                "task": "SCRUM-262",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Alex Johnson"
+            },
+            {
+                "task": "SCRUM-260",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-243",
+                "priority": 2,
+                "points": 8,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-242",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Maria Garcia"
+            },
+            {
+                "task": "SCRUM-234",
+                "priority": 3,
+                "points": 13,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-232",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-229",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Alex Johnson"
+            },
+            {
+                "task": "SCRUM-216",
+                "priority": 2,
+                "points": 13,
+                "assigned_to": "Maria Garcia"
+            },
+            {
+                "task": "SCRUM-212",
+                "priority": 3,
+                "points": 8,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-211",
+                "priority": 2,
+                "points": 8,
+                "assigned_to": "Chen Wei"
+            },
+            {
+                "task": "SCRUM-206",
+                "priority": 2,
+                "points": 13,
+                "assigned_to": "Maria Garcia"
+            },
+            {
+                "task": "SCRUM-201",
+                "priority": 3,
+                "points": 13,
+                "assigned_to": "Maria Garcia"
+            },
+            {
+                "task": "SCRUM-194",
+                "priority": 3,
+                "points": 13,
+                "assigned_to": "Alex Johnson"
+            }
+        ]
+    }
+}
