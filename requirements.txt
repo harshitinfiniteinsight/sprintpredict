@@ -8,3 +8,5 @@ transformers>=4.30.0
 pulp>=2.7.0
 networkx>=2.8.0
 python-dotenv==1.0.1 
+flask==3.0.2
+openai==1.12.0
