@@ -1,6 +1,6 @@
 developer_name,role,capacity,skill_sets,preferences
-Alex Johnson,Security Engineer,80,Java;Oracle;JavaScript;Python;React;Node.js,Java;Oracle;JavaScript;Python;React;Node.js
-Maria Garcia,Security Engineer,80,Java;Oracle;JavaScript;Python;React;Node.js,Java;Oracle;JavaScript;Python;React;Node.js
-Chen Wei,UI/UX Designer,80,React;Java;Oracle;JavaScript;Python;React;Node.js,Java;Oracle;JavaScript;Python;React;Node.js
-David Smith,UI/UX Designer,80,Java;Oracle;JavaScript;Python;React;Node.js,Java;Oracle;JavaScript;Python;React;Node.js
-Sophia Lee,Scrum Master,80,Java;Oracle;JavaScript;Python;React;Node.js,Java;Oracle;JavaScript;Python;React;Node.js
+Alex Johnson,Security Engineer,80,Node.js;Java,Node.js;Java
+Maria Garcia,Security Engineer,80,JavaScript;React,JavaScript;React
+Chen Wei,UI/UX Designer,80,JavaScript;Oracle,JavaScript;Oracle
+David Smith,UI/UX Designer,80,Python;Java,Python;Java
+Sophia Lee,Scrum Master,80,React;Node.js,React;Node.js

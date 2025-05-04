@@ -28,7 +28,8 @@ class DataLoader:
         self.sprint_task_distribution = None
 
         self.load_team_data(self.data_dir / "dummy" / "team_data.csv")  # Load team data during initialization
-        self.load_sprint_history_data(self.data_dir / "dummy" / "sprint_data.csv")
+        self.load_sprint_history_data(self.data_dir / "dummy" / "sprint_data_6.csv")
+        self.load_sprint_history_data_forecast(self.data_dir / "dummy" / "sprint_data_6.csv")
         self.load_forecast_velocity()
         self.load_leaves(self.data_dir / "dummy" / "leaves.csv")
         self.load_holidays(self.data_dir / "dummy" / "holiday.csv")
@@ -71,6 +72,31 @@ class DataLoader:
             return True
         except Exception as e:
             print(f"Error loading sprint data: {str(e)}")
+            return False
+    
+    def load_sprint_history_data_forecast(self, file_path: Union[str, Path]) -> bool:
+        """Load team data."""
+        try:
+            df = pd.read_csv(file_path)
+            
+            # Ensure required columns exist
+            required_columns = ['sprint_number','start_date','end_date','team_size','committed_story_points','completed_story_points','planned_leave_days_team','unplanned_leave_days_team','major_impediment','backlog_well_refined_percentage','sprint_duration_days','available_person_days','lagged_velocity']
+            for col in required_columns:
+                if col not in df.columns:
+                    df[col] = None
+            
+            # Convert start_date and end_date to datetime
+            if 'start_date' in df.columns:
+                df['start_date'] = pd.to_datetime(df['start_date'], errors='coerce')
+            if 'end_date' in df.columns:
+                df['end_date'] = pd.to_datetime(df['end_date'], errors='coerce')
+            
+            df['status'] = 'Completed'  # Mark all records as completed
+            
+            self.sprint_history_data_forecast = df
+            return True
+        except Exception as e:
+            print(f"Error loading team data: {str(e)}")
             return False
     
     def load_team_data(self, file_path: Union[str, Path]) -> bool:
@@ -461,7 +487,7 @@ class DataLoader:
         """Load forecast velocity data."""
         try:
             # Load the forecasted velocity data
-            forecaster.simulate_historical_data()
+            forecaster.historical_sprints_df = self.sprint_history_data_forecast
             forecaster.prepare_data(test_data_percentage=0.2)
             forecaster.train_model()
             mae, y_pred_test = forecaster.evaluate_model() # You can use MAE here if needed

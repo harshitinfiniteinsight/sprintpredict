@@ -221,10 +221,16 @@ class VelocityForecaster:
         last_known_velocity = self.y_test.iloc[-1] # Start forecasting with the last actual test velocity
         last_sprint_number = self.historical_sprints_df['sprint_number'].max()
 
-        # Use averages from the TRAINING data
-        avg_committed = self.X_train['committed_story_points'].mean()
+        # Use averages from the TRAINING data for other features whose future is unknown/static
         avg_impediment = self.X_train['major_impediment'].mean()
         avg_refinement = self.X_train['backlog_well_refined_percentage'].mean()
+
+        # *** NEW: Initialize committed points for the first forecast sprint ***
+        # Based on the last historical velocity from the test set + 5%
+        committed_points_for_this_sprint = round(last_known_velocity * 1.05)
+        # Ensure committed points are non-negative
+        committed_points_for_this_sprint = max(0, committed_points_for_this_sprint)
+
 
         future_sprints_list = []
         current_start_date = future_sprints_start_date
@@ -239,36 +245,56 @@ class VelocityForecaster:
                 team_size_future = self.future_team_size_changes[sprint_start]
 
             # Calculate working days, considering weekends and public holidays
+            # np.busday_count correctly handles list of date objects for holidays
             num_working_days = np.busday_count(sprint_start.date(), sprint_end.date() + timedelta(days=1),
                                                holidays=self.public_holidays_future)
 
             # Get planned leave days for this sprint
+            # Use .get() with a default of 0 if the date is not in planned_leaves_future_events
             planned_leave_days_in_sprint = self.planned_leaves_future_events.get(sprint_start, 0)
 
             # Calculate effective available person-days
             available_person_days_future = (team_size_future * num_working_days) - planned_leave_days_in_sprint
+            # Ensure available person days is non-negative
+            available_person_days_future = max(0, available_person_days_future)
+
 
             # Prepare features for the current future sprint
             future_sprint_features = pd.DataFrame({
                 'team_size': [team_size_future],
                 'sprint_duration_days': [num_working_days],
                 'available_person_days': [available_person_days_future],
-                'committed_story_points': [avg_committed],
+                # *** Use the dynamically calculated committed points for THIS sprint ***
+                'committed_story_points': [committed_points_for_this_sprint],
+                # *** Use the last known velocity (predicted from previous sprint) as lagged velocity ***
                 'lagged_velocity': [last_known_velocity],
+                # Use averages for other features if their future is unknown/static
                 'major_impediment': [avg_impediment],
                 'backlog_well_refined_percentage': [avg_refinement]
             })
 
-            # Ensure column order matches training data
+            # Ensure column order matches training data features
             future_sprint_features = future_sprint_features[self.features]
 
-            # Predict velocity
+            # Predict velocity for the current sprint using the prepared features
             predicted_velocity = self.model.predict(future_sprint_features)[0]
-            predicted_velocity = max(0, predicted_velocity) # Ensure prediction is not negative
+            # Ensure prediction is not negative
+            predicted_velocity = max(0, predicted_velocity)
 
-            # Update last_known_velocity for the next iteration
+
+            # *** Update variables for the NEXT iteration (NEXT sprint's features) ***
+            # The velocity just predicted becomes the 'last_known_velocity' for the next sprint
             last_known_velocity = predicted_velocity
 
+            # Calculate the committed points for the NEXT sprint based on the velocity just predicted + 5%
+            committed_points_for_next_sprint = round(predicted_velocity * 1.05)
+            # Ensure committed points are non-negative for the next sprint
+            committed_points_for_next_sprint = max(0, committed_points_for_next_sprint)
+            # Set the calculated points as the committed points for the 'this_sprint' variable for the next loop iteration
+            committed_points_for_this_sprint = committed_points_for_next_sprint
+
+
+            # Append the results for the CURRENT sprint to the list
             future_sprints_list.append({
                 'sprint_number': sprint_number,
                 'start_date': sprint_start,
@@ -276,9 +302,10 @@ class VelocityForecaster:
                 'team_size': team_size_future,
                 'sprint_duration_days': num_working_days,
                 'available_person_days': available_person_days_future,
-                'forecasted_velocity': predicted_velocity
+                'forecasted_velocity': predicted_velocity # Store the prediction for this sprint
             })
 
+            # Move to the next sprint start date
             current_start_date = sprint_end + timedelta(days=1)
 
         self.future_sprints_df = pd.DataFrame(future_sprints_list)

@@ -42,7 +42,6 @@ build/
 *.swo
 
 # Data
-*.csv
 *.xlsx
 *.xls
 *.db

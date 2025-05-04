@@ -70,7 +70,7 @@ from optimization.sprint_optimizer import SprintOptimizer
 # Remove Flask secret key: flaskapp.secret_key = os.urandom(24) # Not needed for FastAPI sessions
 
 # Initialize OpenAI client (can remain global)
-client = OpenAI(api_key="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") # Use environment variable for API key
+client = OpenAI(api_key="API_KEY") # Use environment variable for API key
 
 # Initialize FastAPI app
 app = FastAPI(title="Sprint Spark AI Planner API")
@@ -424,7 +424,7 @@ async def get_skill_matching():
 async def sync_from_jira():
     jira_url = "https://nusgroup7project.atlassian.net/rest/api/3/search?jql=project=SCRUM&fields=summary,description,status&maxResults=80"
     username = "chitrarathb@gmail.com"  # Replace with your JIRA username
-    password = "ATATT3xFfGF0tgagPgs9R0hhzh6YahiE_XNfkr4X1C95nRRQoWpGL2tciPzT0MVi4wBLZA07Blxn5KI_3BX6EM4UVOdImYNDo0TOuPgIap_7uPEbjVehZ82lboRcL7aRKMz_79gB_4IMdryd-YCSq8LeT-XXgFErCmxMORsdPNkLDRFgLV5kag0=F0E43FB0"  # Replace with your JIRA password
+    password = "KEY"  # Replace with your JIRA password
 
     try:
         response = requests.get(jira_url, auth=HTTPBasicAuth(username, password))
