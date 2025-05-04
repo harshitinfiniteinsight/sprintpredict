@@ -19,7 +19,8 @@ sprintpredict/
 │   ├── nlp/               # Natural Language Processing
 │   ├── optimization/      # Sprint optimization algorithms
 │   ├── visualization/     # Data visualization
-│   ├── main.py           # FastAPI application
+|   ├── regression/        # Velocity Forecast
+│   ├── main.py           # FastAPI application 
 │   └── requirements.txt  # Python dependencies
 │
 ├── frontend/              # React frontend
@@ -62,7 +63,6 @@ pip3 install torch torchvision torchaudio
 ```bash
 cd ../frontend
 npm install
-npm install @mui/material @emotion/react @emotion/styled
 ```
 
 4. Create environment files:
