@@ -1,4 +1,4 @@
-# Sprint Spark AI Planner
+# SprintPredict
 
 A comprehensive sprint planning and management tool that leverages AI to optimize task assignments and sprint planning.
 
